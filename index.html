@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fysik och matematik</title>
+
+<script>
+/* ============================================================
+   REDIGERA HÄR. Detta är den enda delen du behöver röra.
+
+   Varje rad har tre delar:
+     titel        = det eleverna ser
+     fil          = filnamnet exakt som det heter i repot
+     beskrivning  = en rad text under titeln (får vara tom: "")
+
+   Lägg till en ny sida genom att kopiera en rad och ändra den.
+   Ta bort en sida genom att radera dess rad.
+   Skapa ett nytt område genom att kopiera ett helt block.
+   ============================================================ */
+
+const omraden = [
+  {
+    omrade: "Mekanik",
+    sidor: [
+      { titel: "Fjädersvängning",  fil: "fjadersvangning.html", beskrivning: "Harmonisk svängning med dämpning." },
+      { titel: "Kaströrelse",      fil: "kastrorelse.html",     beskrivning: "Utgångsvinkel och räckvidd." }
+    ]
+  },
+  {
+    omrade: "Ellära",
+    sidor: [
+      { titel: "Kretsar",          fil: "kretsar.html",         beskrivning: "" }
+    ]
+  }
+];
+
+/* ============================================================
+   Härifrån och ner behöver du inte ändra något.
+   ============================================================ */
+</script>
+
+<style>
+  :root {
+    --bg: #fbfaf8;
+    --panel: #ffffff;
+    --text: #1c1b19;
+    --muted: #6b6862;
+    --line: #e5e2dc;
+    --accent: #2f6f4f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16171a;
+      --panel: #1e2024;
+      --text: #ececea;
+      --muted: #9a9892;
+      --line: #2e3136;
+      --accent: #7fb99a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 3rem 1.25rem 5rem;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+  h1 {
+    font-size: 1.9rem;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.35rem;
+  }
+  .ingress { color: var(--muted); margin: 0 0 3rem; }
+  h2 {
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 2.75rem 0 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li { margin: 0 0 0.6rem; }
+  a.kort {
+    display: block;
+    padding: 0.95rem 1.1rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  a.kort:hover, a.kort:focus-visible {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .titel { font-weight: 600; }
+  a.kort:hover .titel { color: var(--accent); }
+  .beskrivning { color: var(--muted); font-size: 0.92rem; margin-top: 0.15rem; }
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+
+<body>
+<main>
+  <h1>Fysik och matematik</h1>
+  <p class="ingress">Simuleringar och interaktivt material. Klicka på en rubrik för att öppna.</p>
+
+  <div id="innehall"></div>
+
+  <footer>Lars Kaggskolan, Kalmar</footer>
+</main>
+
+<script>
+  const ut = document.getElementById("innehall");
+
+  omraden.forEach(function (block) {
+    if (!block.sidor || block.sidor.length === 0) return;
+
+    const rubrik = document.createElement("h2");
+    rubrik.textContent = block.omrade;
+    ut.appendChild(rubrik);
+
+    const lista = document.createElement("ul");
+
+    block.sidor.forEach(function (sida) {
+      const rad = document.createElement("li");
+      const lank = document.createElement("a");
+      lank.className = "kort";
+      lank.href = sida.fil;
+
+      const titel = document.createElement("div");
+      titel.className = "titel";
+      titel.textContent = sida.titel;
+      lank.appendChild(titel);
+
+      if (sida.beskrivning) {
+        const text = document.createElement("div");
+        text.className = "beskrivning";
+        text.textContent = sida.beskrivning;
+        lank.appendChild(text);
+      }
+
+      rad.appendChild(lank);
+      lista.appendChild(rad);
+    });
+
+    ut.appendChild(lista);
+  });
+</script>
+</body>
+</html>
