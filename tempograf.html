@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tempograf – simulering</title>
+<style>
+  :root{
+    --bg:#f4f2ed;
+    --ink:#1c1c1c;
+    --muted:#6b6560;
+    --line:#d6d0c6;
+    --accent:#2f5d50;
+    --accent-soft:#e3ece8;
+    --warn:#8a6d1f;
+    --bad:#8c3b2e;
+    --tape:#fbf7ee;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 60px}
+  h1{font-size:1.5rem;margin:0 0 4px;letter-spacing:-0.01em}
+  .sub{color:var(--muted);font-size:0.92rem;margin:0 0 22px}
+
+  .panel{
+    background:#fff;border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;margin-bottom:18px;
+  }
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button{
+    font:inherit;font-weight:600;cursor:pointer;
+    border:1px solid var(--accent);background:var(--accent);color:#fff;
+    padding:9px 16px;border-radius:7px;
+  }
+  button:hover{filter:brightness(1.08)}
+  button.ghost{background:#fff;color:var(--accent)}
+  button:disabled{opacity:.45;cursor:default;filter:none}
+
+  .meta{
+    display:flex;flex-wrap:wrap;gap:22px;
+    margin-top:6px;padding-top:14px;border-top:1px solid var(--line);
+    font-size:0.85rem;color:var(--muted);
+  }
+  .meta b{color:#4a4540;font-weight:600}
+  .freqrow{margin-top:12px}
+  .freqrow label{color:var(--muted)}
+
+  #tapeBox{overflow-x:auto}
+  canvas{display:block;max-width:100%;height:auto}
+
+  .answer{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  label{font-size:0.92rem}
+  input[type=number], select{
+    font:inherit;padding:8px 10px;
+    border:1px solid var(--line);border-radius:7px;background:#fff;
+  }
+  input[type=number]{width:120px}
+  .note{
+    display:none;margin-top:12px;padding:9px 13px;font-size:0.9rem;
+    background:#f6f0dd;border:1px solid #ded0a4;color:var(--warn);border-radius:8px;
+  }
+  .note.show{display:block}
+  .verdict{margin-top:12px;padding:11px 14px;border-radius:8px;font-size:0.94rem;display:none}
+  .verdict.ok{display:block;background:var(--accent-soft);border:1px solid #b9d0c7}
+  .verdict.mid{display:block;background:#f6f0dd;border:1px solid #ded0a4;color:var(--warn)}
+  .verdict.bad{display:block;background:#f7e6e2;border:1px solid #e0bcb3;color:var(--bad)}
+  .facit{margin-top:12px;font-size:0.94rem;display:none;padding:13px 16px;background:#f7f5f0;border:1px solid var(--line);border-radius:8px}
+  .facit p{margin:0 0 10px}
+  .facit p.last{margin:10px 0 0}
+  .facit table{border-collapse:collapse;margin:4px 0 2px;font-size:0.89rem;font-variant-numeric:tabular-nums}
+  .facit th, .facit td{padding:5px 14px 5px 0;text-align:right;border-bottom:1px solid #e3ded4}
+  .facit th:first-child, .facit td:first-child{text-align:left}
+  .facit th{font-weight:600;color:var(--muted);white-space:nowrap}
+  .facit .calc{background:#eef3f0;border-left:3px solid var(--accent);padding:9px 13px;margin:12px 0 0;border-radius:0 6px 6px 0}
+  .facit .explain{
+    margin:14px 0 0;padding:11px 14px;
+    background:#fff;border:1px solid var(--line);border-radius:8px;
+  }
+  .facit .explain > b{display:block;margin-bottom:7px}
+  .facit .explain p{margin:0 0 9px}
+  .facit .explain p:last-child{margin-bottom:0}
+  .facit .explain ul{margin:0 0 9px;padding-left:20px}
+  .facit .explain li{margin-bottom:3px}
+
+  details{margin-top:6px}
+  summary{cursor:pointer;font-weight:600;font-size:0.95rem}
+  details p, details li{font-size:0.92rem;color:#3a3a3a}
+  ol{padding-left:20px}
+  .hint{font-size:0.85rem;color:var(--muted);margin:8px 0 0}
+
+  /* --- helskärmsläge: bara remsan --- */
+  #fsbar{display:none}
+  #stage:fullscreen, #stage:-webkit-full-screen{
+    background:var(--bg);
+    padding:10px 12px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+    width:100%;height:100%;
+  }
+  #stage:fullscreen .panel, #stage:-webkit-full-screen .panel{
+    border:none;background:transparent;margin:0;padding:0;
+    flex:1 1 auto;min-height:0;width:100%;
+    display:flex;flex-direction:column;
+  }
+  #stage:fullscreen #fsbar, #stage:-webkit-full-screen #fsbar{
+    display:flex;align-items:center;gap:16px;
+    width:100%;padding:0 4px 8px;
+    font-size:0.88rem;color:var(--muted);
+  }
+  #fsbar .spacer{flex:1}
+  #fsbar button{padding:6px 12px;font-size:0.85rem}
+  #stage:fullscreen #tapeBox, #stage:-webkit-full-screen #tapeBox{
+    flex:1 1 auto;min-height:0;width:100%;
+    overflow-y:auto;overflow-x:hidden;
+    overscroll-behavior:contain;
+  }
+  #stage:fullscreen #tapeBox canvas, #stage:-webkit-full-screen #tapeBox canvas{
+    margin:0 auto;max-width:none;
+  }
+  #fsbar{flex:0 0 auto}
+  #tapeBox:focus{outline:none}
+
+  @media print{
+    body{background:#fff}
+    .noprint{display:none !important}
+    .panel{border:none;padding:0}
+    #tapeBox{overflow:visible}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tempograf – simulerad remsa</h1>
+  <p class="sub"><span id="subFreq">Prickfrekvens 50 Hz · tid mellan två prickar 0,020 s</span> &nbsp;·&nbsp; accelerationen är okänd och slumpas om varje körning</p>
+
+  <div class="panel noprint">
+    <details>
+      <summary>Så här gör du</summary>
+      <ol>
+        <li>Hoppa över början av remsan, där prickarna flyter ihop. Välj som startprick den första prick vars avstånd till nästa tydligt går att mäta mot skalan. Vilken prick det blir spelar ingen roll.</li>
+        <li>Räkna framåt från startpricken i lika stora <b><span id="stepGroup">intervall om 5 prickavstånd</span></b> och läs av intervallgränsernas läge mot cm-skalan. <span id="stepTime">Tiden per intervall blir <i>t</i> = 5 · 0,020 s = 0,10 s.</span></li>
+        <li>Beräkna medelhastigheten för varje intervall, <i>v</i> = <i>s</i>/<i>t</i>. Den gäller mitt i intervallet.</li>
+        <li>Räkna tiden från din startprick: första intervallets mitt ligger vid halva <i>t</i>, nästa ett helt <i>t</i> senare, och så vidare.</li>
+        <li>Rita <i>v</i> som funktion av tiden och bestäm lutningen – det är accelerationen.</li>
+      </ol>
+      <p id="noiseNote">Genvägen <i>a</i> = Δ<i>s</i>/<i>t</i>² på ett enda prickavstånd fungerar dåligt här: avläsningsfelet blir uppförstorat av det lilla <i>t</i>². Använd längre intervall.</p>
+      <p>Remsan har både slumpmässig avläsningsspridning och ett litet luftmotstånd, precis som en riktig körning. Ditt värde kommer alltså att avvika något beroende på vilka prickar du väljer.</p>
+    </details>
+  </div>
+
+  <div class="panel noprint">
+    <div class="controls">
+      <button id="run">Ny remsa</button>
+      <button id="fs" class="ghost">Helskärm</button>
+      <button id="print" class="ghost">Skriv ut</button>
+    </div>
+    <div class="controls freqrow">
+      <label for="freq">Prickfrekvens:</label>
+      <select id="freq">
+        <option value="25">25 Hz</option>
+        <option value="50" selected>50 Hz</option>
+        <option value="100">100 Hz</option>
+      </select>
+    </div>
+    <div id="freqNote" class="note noprint">Ny frekvens vald – remsan är omgjord med en ny slumpad acceleration. Tidigare avläsningar gäller inte längre.</div>
+  </div>
+
+  <div id="stage">
+    <div id="fsbar" class="noprint">
+      <span id="fsFreq">Tempograf 50 Hz &nbsp;·&nbsp; 0,020 s mellan två prickar</span>
+      <span class="spacer"></span>
+      <button id="zoomOut" class="ghost" title="Zooma ut">–</button>
+      <span id="zoomLabel">24 cm per rad</span>
+      <button id="zoomIn" class="ghost" title="Zooma in">+</button>
+      <button id="fsClose" class="ghost">Stäng helskärm (Esc)</button>
+    </div>
+    <div class="panel">
+      <div id="tapeBox" tabindex="0"><canvas id="tape"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel noprint">
+    <div class="answer">
+      <label for="guess">Ditt beräknade värde på <i>a</i>:</label>
+      <input type="number" id="guess" step="0.01" placeholder="t.ex. 6,4" inputmode="decimal">
+      <span>m/s²</span>
+      <button id="check">Kontrollera</button>
+      <button id="reveal" class="ghost">Visa facit</button>
+    </div>
+    <div id="verdict" class="verdict"></div>
+    <div id="facit" class="facit"></div>
+  </div>
+
+  <div class="meta noprint">
+    <span>Prickar: <b id="nDots">–</b></span>
+    <span>Remslängd: <b id="tapeLen">–</b></span>
+    <span>Total tid: <b id="tapeTime">–</b></span>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- fysik ----------
+  var FREQ = 50;          // prickfrekvens, Hz
+  var DRAG = 0.13;        // enkel hastighetsberoende bromsning (s^-1)
+  var SIGMA_MM = 0.20;    // avläsnings-/markeringsspridning per prick
+  var MAX_CM = 118;       // remsans längd – densamma oavsett frekvens
+  var MAX_DOTS = 150;
+  var SKIP_T = 0.12;      // inledande tid som är för hoptrasslad att mäta på
+
+  var state = null;
+
+  function dt(){ return 1/FREQ; }
+  function nSkip(){ return Math.max(2, Math.round(SKIP_T*FREQ)); }
+  function groupSize(){ return Math.max(1, Math.round(0.1*FREQ)); }
+
+  function gauss(){
+    var u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+  }
+
+  function generate(){
+    var aSet = 2 + Math.random()*8;             // 2–10 m/s^2
+    var x = 0, vel = 0;
+    var step = dt();
+    var sub = 40, h = step/sub;
+    var dots = [];                               // {t, cm}
+    dots.push({t:0, cm:0});
+    for(var i=1; i<MAX_DOTS; i++){
+      for(var k=0;k<sub;k++){
+        var acc = aSet - DRAG*vel;
+        vel += acc*h;
+        x   += vel*h;
+      }
+      var cm = x*100 + gauss()*SIGMA_MM/10;
+      if(cm > MAX_CM) break;
+      dots.push({t:i*step, cm:cm});
+    }
+    return {aSet:aSet, freq:FREQ, dots:dots};
+  }
+
+
+  // ---------- ritning ----------
+  var BASE_PPCM = 32;   // px per cm i normalläge
+  var BASE_ROWCM = 24;  // cm per rad i normalläge
+
+  // cm per rad, från mest zoomat till minst
+  var ROW_CANDS = [6,8,10,12,15,20,24,30,40];
+  var zoomOffset = 0;   // elevens justering i helskärmsläget
+
+  function cfgForIndex(idx, availW){
+    idx = Math.max(0, Math.min(ROW_CANDS.length-1, idx));
+    var rowCm = ROW_CANDS[idx];
+    var marginL = 54, marginR = 96;
+    var ppcm = (availW - marginL - marginR) / rowCm;
+    var sv = Math.max(0.9, Math.min(2.6, ppcm/BASE_PPCM));
+    return {idx:idx, rowCm:rowCm, ppcm:ppcm, sv:sv, marginL:marginL, marginR:marginR};
+  }
+
+  // minsta rad-längd (= största skala) vars totalhöjd ryms på skärmen
+  function autoIndex(totalCm, availW, availH){
+    for(var i=0;i<ROW_CANDS.length;i++){
+      var c = cfgForIndex(i, availW);
+      if(c.ppcm < 14) continue;
+      var rows = Math.max(1, Math.ceil((totalCm + 0.4)/c.rowCm));
+      if(16*c.sv + rows*104*c.sv <= availH) return i;
+    }
+    return ROW_CANDS.length-1;
+  }
+
+  function draw(st, cfg){
+    var canvas = document.getElementById('tape');
+    var ctx = canvas.getContext('2d');
+    var totalCm = st.dots[st.dots.length-1].cm;
+    var rowCm = cfg.rowCm, ppcm = cfg.ppcm, sv = cfg.sv;
+    var rows = Math.max(1, Math.ceil((totalCm + 0.4) / rowCm));
+
+    var bandH = 40*sv, rowH = 104*sv;
+    var w = cfg.marginL + cfg.marginR + rowCm*ppcm;
+    var h = 16*sv + rows*rowH;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.round(w*dpr); canvas.height = Math.round(h*dpr);
+    canvas.style.width = w+'px'; canvas.style.height = h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    ctx.clearRect(0,0,w,h);
+    ctx.font = Math.round(11*Math.min(sv,1.7)) + 'px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif';
+    ctx.textBaseline = 'top';
+
+    for(var r=0;r<rows;r++){
+      var y0 = 14*sv + r*rowH;
+      var x0 = cfg.marginL;
+
+      // remsan
+      ctx.fillStyle = '#fbf7ee';
+      ctx.strokeStyle = '#ded7c8';
+      ctx.lineWidth = 1;
+      ctx.fillRect(x0, y0, rowCm*ppcm, bandH);
+      ctx.strokeRect(x0+0.5, y0+0.5, rowCm*ppcm-1, bandH-1);
+
+      // prickar
+      ctx.fillStyle = '#141414';
+      for(var i=0;i<st.dots.length;i++){
+        var cm = st.dots[i].cm;
+        if(cm < r*rowCm || cm >= (r+1)*rowCm) continue;
+        var px = x0 + (cm - r*rowCm)*ppcm;
+        ctx.beginPath();
+        ctx.arc(px, y0 + bandH/2, 2.1*Math.min(sv,1.6), 0, Math.PI*2);
+        ctx.fill();
+      }
+
+      // linjal
+      var ry = y0 + bandH + 8*sv;
+      ctx.strokeStyle = '#4a4a4a';
+      ctx.beginPath();
+      ctx.moveTo(x0, ry+0.5); ctx.lineTo(x0 + rowCm*ppcm, ry+0.5);
+      ctx.stroke();
+
+      ctx.fillStyle = '#4a4a4a';
+      for(var mm=0; mm<=rowCm*10; mm++){
+        var xm = x0 + mm*ppcm/10;
+        var len = ((mm%10===0) ? 11 : (mm%5===0 ? 7 : 4)) * Math.min(sv,1.8);
+        ctx.beginPath();
+        ctx.moveTo(Math.round(xm)+0.5, ry);
+        ctx.lineTo(Math.round(xm)+0.5, ry+len);
+        ctx.stroke();
+        if(mm%10===0){
+          ctx.textAlign = 'center';
+          ctx.fillText(String(r*rowCm + mm/10), xm, ry + 13*Math.min(sv,1.8));
+        }
+      }
+      // "cm" placeras till höger om den sista siffran, aldrig ovanpå den
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#8a837b';
+      var lastLabelHalf = ctx.measureText(String(r*rowCm + rowCm)).width/2;
+      ctx.fillText('cm', x0 + rowCm*ppcm + lastLabelHalf + 10*Math.min(sv,1.6),
+                   ry + 13*Math.min(sv,1.8));
+    }
+  }
+
+  function currentLayout(st){
+    var totalCm = st.dots[st.dots.length-1].cm;
+    if(isFullscreen()){
+      var availW = window.innerWidth - 48, availH = window.innerHeight - 62;
+      return cfgForIndex(autoIndex(totalCm, availW, availH) - zoomOffset, availW);
+    }
+    return {idx:-1, rowCm:BASE_ROWCM, ppcm:BASE_PPCM, sv:1, marginL:46, marginR:70};
+  }
+
+  function render(){
+    if(!state) return;
+    var cfg = currentLayout(state);
+    draw(state, cfg);
+    if(isFullscreen()){
+      document.getElementById('zoomLabel').textContent = cfg.rowCm + ' cm per rad';
+      document.getElementById('zoomIn').disabled  = (cfg.idx === 0 || cfg.ppcm > 160);
+      document.getElementById('zoomOut').disabled = (cfg.idx === ROW_CANDS.length-1);
+    }
+  }
+
+  function zoom(dir){
+    var before = currentLayout(state).idx;
+    zoomOffset += dir;
+    var after = currentLayout(state).idx;
+    if(after === before) zoomOffset -= dir;   // redan i ändläget
+    render();
+  }
+
+  // ---------- ui ----------
+  function fmt(x, d){ return x.toFixed(d).replace('.', ','); }
+
+  // ---------- texter som beror på frekvensen ----------
+  function fmtT(x){
+    return (x < 0.1 ? x.toFixed(3) : x.toFixed(2)).replace('.', ',');
+  }
+  function updateTexts(){
+    var g = groupSize(), step = dt();
+    document.getElementById('subFreq').textContent =
+      'Prickfrekvens ' + FREQ + ' Hz · tid mellan två prickar ' + fmtT(step) + ' s';
+    document.getElementById('fsFreq').textContent =
+      'Tempograf ' + FREQ + ' Hz · ' + fmtT(step) + ' s mellan två prickar';
+    document.getElementById('stepGroup').textContent =
+      (g === 1 ? 'intervall om ett prickavstånd' : 'intervall om ' + g + ' prickavstånd');
+    document.getElementById('stepTime').innerHTML =
+      (g === 1
+        ? 'Tiden per intervall är <i>t</i> = ' + fmtT(step) + ' s.'
+        : 'Tiden per intervall blir <i>t</i> = ' + g + ' · ' + fmtT(step) + ' s = ' + fmtT(g*step) + ' s.');
+
+    // osäkerheten i a från ETT prickpar: sqrt(6)·sigma / t^2
+    var sigmaPair = Math.sqrt(6)*(SIGMA_MM/1000)/(step*step);
+    document.getElementById('noiseNote').innerHTML =
+      'Räknar du <i>a</i> = Δ<i>s</i>/<i>t</i>² på ett enda prickavstånd blir osäkerheten ungefär ±' +
+      fmt(sigmaPair,1) + ' m/s², eftersom avläsningsfelet divideras med det lilla <i>t</i>². ' +
+      (sigmaPair < 0.5
+        ? 'Vid den här frekvensen går det ändå bra, men längre intervall ger säkrare värden.'
+        : 'Använd längre intervall i stället – då blir <i>t</i> större och felet mycket mindre.');
+  }
+
+  // ---------- utarbetad lösning ----------
+  // Räknar med samma avrundade tal som visas i tabellen, så att en elev
+  // som gör om räkningen för hand får exakt samma siffror.
+  var MAX_ROWS = 5;
+
+  // ett "snyggt" cm-värde som eleven kan hitta på linjalen och som ligger
+  // strikt mellan föregående prick och startpricken
+  function niceAnchor(prev, start){
+    // eleven läser av på mm-nivå, så ankaret måste ligga minst en millimeter
+    // över föregående pricks avläsning och senast vid startpricken
+    var lo = +(+prev.toFixed(1) + 0.1).toFixed(1);
+    var hi = +start.toFixed(1);
+    if(lo > hi) return hi;
+    var grains = [1, 0.5, 0.1];
+    for(var i=0;i<grains.length;i++){
+      var a = +(Math.ceil((lo - 1e-9)/grains[i])*grains[i]).toFixed(1);
+      if(a <= hi + 1e-9) return a;
+    }
+    return hi;
+  }
+
+  function buildSolution(st){
+    var d = st.dots, g = groupSize(), T = g*dt();
+    var i0 = nSkip();                          // första prick där avstånden går att mäta
+    var rows = [];
+    for(var i = i0, k = 0; i + g < d.length && rows.length < MAX_ROWS; i += g, k++){
+      var c0 = +d[i].cm.toFixed(1);            // avläst på mm-nivå
+      var c1 = +d[i+g].cm.toFixed(1);
+      var s  = +(c1 - c0).toFixed(1);
+      rows.push({
+        n: k+1, c0: c0, c1: c1, s: s,
+        v: +((s/100)/T).toFixed(2),
+        t: +((k + 0.5)*T).toFixed(3)           // tiden räknas från den valda startpricken
+      });
+    }
+    var f = rows[0], l = rows[rows.length-1];
+    return {rows:rows, T:T, g:g, first:f, last:l,
+            anchor: niceAnchor(d[i0-1].cm, d[i0].cm),
+            a: (l.v - f.v)/(l.t - f.t)};
+  }
+
+  function run(){
+    state = generate();
+    state.sol = buildSolution(state);
+    updateTexts();
+    render();
+    var last = state.dots[state.dots.length-1];
+    document.getElementById('nDots').textContent = state.dots.length;
+    document.getElementById('tapeLen').textContent = fmt(last.cm,1) + ' cm';
+    document.getElementById('tapeTime').textContent = fmt(last.t,2) + ' s';
+    document.getElementById('guess').value = '';
+    document.getElementById('verdict').className = 'verdict';
+    document.getElementById('verdict').textContent = '';
+    document.getElementById('facit').style.display = 'none';
+  }
+
+  function check(){
+    if(!state) return;
+    var raw = document.getElementById('guess').value.replace(',', '.');
+    var g = parseFloat(raw);
+    var el = document.getElementById('verdict');
+    if(isNaN(g) || g <= 0){
+      el.className = 'verdict bad';
+      el.textContent = 'Skriv in ett positivt tal först.';
+      return;
+    }
+    var ref = state.sol.a;
+    var dev = 100*(g - ref)/ref;
+    var ad = Math.abs(dev);
+    var sign = dev >= 0 ? '+' : '−';
+    var msg = 'Ditt värde ' + fmt(g,2) + ' m/s² avviker ' + sign + fmt(ad,1) +
+              ' % från vad remsan ger vid noggrann mätning.';
+    if(ad <= 5){
+      el.className = 'verdict ok';
+      el.textContent = msg + ' Det är en bra mätning.';
+    } else if(ad <= 12){
+      el.className = 'verdict mid';
+      el.textContent = msg + ' Rimligt, men se över avläsningarna – använd gärna fler prickar och prickar längre ut på remsan.';
+    } else {
+      el.className = 'verdict bad';
+      el.textContent = msg + ' Kontrollera tiden mellan två prickar (' + fmtT(dt()) + ' s) och att du räknar med sträckan mellan prickarna, inte läget.';
+    }
+  }
+
+  function reveal(){
+    if(!state) return;
+    var s = state.sol, step = dt(), box = document.getElementById('facit');
+
+    var html =
+      '<p><b>Facit: a ≈ ' + fmt(s.a,2) + ' m/s²</b></p>' +
+      '<p><b>Ett exempel.</b> Här är startpricken den första vid eller efter <b>' + fmt(s.anchor,1) +
+      ' cm</b>, och sedan tas intervall om ' + s.g + ' prickavstånd. Varje intervall varar ' +
+      '<i>t</i> = ' + fmtT(s.T) + ' s, och det är den tiden <i>s</i> ska delas med. Börjar du vid en annan ' +
+      'prick får du andra tal i tabellen, men samma acceleration.</p>' +
+      '<table><thead><tr>' +
+        '<th>Intervall</th><th>Läge (cm)</th><th>s (cm)</th><th>t (s)</th>' +
+        '<th>v = s/t (m/s)</th><th>v gäller vid (s)</th>' +
+      '</tr></thead><tbody>';
+
+    s.rows.forEach(function(r){
+      html += '<tr><td>' + r.n + '</td>' +
+              '<td>' + fmt(r.c0,1) + ' → ' + fmt(r.c1,1) + '</td>' +
+              '<td>' + fmt(r.s,1) + '</td>' +
+              '<td>' + fmtT(s.T) + '</td>' +
+              '<td>' + fmt(r.v,2) + '</td>' +
+              '<td>' + fmt(r.t,3) + '</td></tr>';
+    });
+    html += '</tbody></table>';
+
+    // det som oftast går fel: vilken tidpunkt hastigheten hör till
+    html +=
+      '<div class="explain">' +
+      '<b>Vid vilken tidpunkt gäller v?</b>' +
+      '<p><i>s</i>/<i>t</i> är intervallets <b>medelfart</b>. Farten ökar hela tiden, så den är lägre i början ' +
+      'av intervallet och högre i slutet. Precis i mitten är den lika med medelfarten – det är där ' +
+      '<i>v</i>-värdet hör hemma.</p>' +
+      '<p>Sätt <i>t</i> = 0 vid din startprick:</p>' +
+      '<ul>' +
+        '<li>Intervall 1 går från 0 till ' + fmtT(s.T) + ' s → mitten ' + fmt(s.rows[0].t,3) + ' s</li>' +
+        '<li>Intervall 2 går från ' + fmtT(s.T) + ' till ' + fmtT(2*s.T) + ' s → mitten ' + fmt(s.rows[1].t,3) + ' s</li>' +
+        '<li>Sedan ' + fmtT(s.T) + ' s till varje ny mitt</li>' +
+      '</ul>' +
+      '<p><b>Räkna prickavstånd, inte prickar.</b> ' + s.g + ' prickavstånd omfattar ' + (s.g+1) + ' prickar. ' +
+      'Det är avstånden som ger tiden: ' + s.g + ' · ' + fmtT(step) + ' s = ' + fmtT(s.T) + ' s.</p>' +
+      '<p>Lägger du <i>v</i>-värdena vid intervallens slut i stället blir lutningen densamma, så <i>a</i> ' +
+      'stämmer ändå. Men då visar diagrammet fel fart vid varje tidpunkt.</p>' +
+      '</div>';
+
+    html +=
+      '<div class="calc">Accelerationen är lutningen i <i>v</i>–<i>t</i>-diagrammet: ökningen i fart delad med tiden mellan de två tidpunkterna i sista kolumnen.<br><br>' +
+      '<i>a</i> = (' + fmt(s.last.v,2) + ' − ' + fmt(s.first.v,2) + ') / (' +
+      fmt(s.last.t,3) + ' − ' + fmt(s.first.t,3) + ') = ' +
+      fmt(s.last.v - s.first.v,2) + ' / ' + fmt(s.last.t - s.first.t,3) + ' = <b>' +
+      fmt(s.a,2) + ' m/s²</b></div>';
+
+    html +=
+      '<p class="last">Simuleringen startade från ' + fmt(state.aSet,2) + ' m/s². Mätningen ger ett något ' +
+      'lägre värde eftersom luftmotståndet bromsar mer ju fortare remsan går.</p>';
+
+    box.innerHTML = html;
+    box.style.display = 'block';
+  }
+
+  // ---------- helskärm ----------
+  function isFullscreen(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function openFs(){
+    var el = document.getElementById('stage');
+    var req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if(req){ req.call(el); }
+    else { alert('Webbläsaren tillåter inte helskärm här. Prova F11 i stället.'); }
+  }
+  function closeFs(){
+    var exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if(exit && isFullscreen()) exit.call(document);
+  }
+  ['fullscreenchange','webkitfullscreenchange'].forEach(function(ev){
+    document.addEventListener(ev, function(){ setTimeout(render, 30); });
+  });
+  window.addEventListener('resize', function(){ if(isFullscreen()) render(); });
+
+  document.getElementById('freq').addEventListener('change', function(){
+    FREQ = parseInt(this.value, 10);
+    zoomOffset = 0;
+    run();
+    var n = document.getElementById('freqNote');
+    n.classList.add('show');
+    clearTimeout(n._t);
+    n._t = setTimeout(function(){ n.classList.remove('show'); }, 6000);
+  });
+  document.getElementById('fs').addEventListener('click', function(){ zoomOffset = 0; openFs(); });
+  document.getElementById('fsClose').addEventListener('click', closeFs);
+  document.getElementById('zoomIn').addEventListener('click', function(){ zoom(1); });
+  document.getElementById('zoomOut').addEventListener('click', function(){ zoom(-1); });
+  document.getElementById('run').addEventListener('click', run);
+  document.getElementById('check').addEventListener('click', check);
+  document.getElementById('reveal').addEventListener('click', reveal);
+  document.getElementById('print').addEventListener('click', function(){ window.print(); });
+  document.getElementById('guess').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') check();
+  });
+
+  run();
+})();
+</script>
+</body>
+</html>

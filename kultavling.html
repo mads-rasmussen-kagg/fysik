@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vilken kula kommer först?</title>
+<style>
+  :root{
+    --bg:#faf9f7;
+    --panel:#ffffff;
+    --text:#1f1e1d;
+    --muted:#6b6862;
+    --line:#d6d2cb;
+    --accent:#c2612f;
+    --track:#8a8580;
+    --c1:#c2612f;
+    --c2:#356d94;
+    --c3:#5b8038;
+    --radius:8px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#1b1a19; --panel:#232221; --text:#eceae6;
+      --muted:#a39e96; --line:#3d3b38; --accent:#e08a52; --track:#9a948d;
+      --c1:#e08a52; --c2:#68a6cd; --c3:#8ab55e;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6;
+    padding:32px 20px 64px;
+  }
+  main{max-width:900px;margin:0 auto}
+  h1{font-size:24px;font-weight:600;margin:0 0 4px;letter-spacing:-0.01em}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 24px}
+  p{margin:0 0 12px}
+  .fig{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+
+  /* --- uppsättningsväljare --- */
+  #sets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .sh{
+    font:inherit;font-size:11.5px;padding:6px 8px 4px;border-radius:var(--radius);
+    border:1px solid var(--line);background:transparent;color:var(--muted);
+    cursor:pointer;line-height:1.2;display:flex;flex-direction:column;align-items:center;gap:3px;
+    transition:border-color .12s,color .12s;min-width:112px;
+  }
+  .sh:hover{border-color:var(--muted)}
+  .sh.on{border-color:var(--accent);color:var(--accent)}
+  .sh svg{display:block;width:98px;height:30px}
+  .sh svg path{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+  .sh svg .p1{stroke:var(--c1)} .sh svg .p2{stroke:var(--c2)} .sh svg .p3{stroke:var(--c3)}
+
+  /* --- kontroller --- */
+  .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 0}
+  .btn{
+    font:inherit;font-size:12.5px;padding:6px 13px;border-radius:var(--radius);
+    border:1px solid var(--line);background:transparent;color:var(--text);
+    cursor:pointer;line-height:1.2;transition:border-color .12s,color .12s;
+  }
+  .btn:hover{border-color:var(--muted)}
+  .btn:disabled{opacity:.38;cursor:default}
+  .btn:disabled:hover{border-color:var(--line)}
+  .btn.primary{border-color:var(--accent);color:var(--accent)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .seg button{
+    font:inherit;font-size:12.5px;padding:6px 12px;border:0;background:transparent;
+    color:var(--muted);cursor:pointer;line-height:1.2;
+  }
+  .seg button + button{border-left:1px solid var(--line)}
+  .seg button.on{color:var(--accent)}
+  .lbl{font-size:12.5px;color:var(--muted)}
+
+  /* touch-action: manipulation, inte none — figuren är hög på en telefon, och
+     sidan ska gå att skrolla med fingret även över den. */
+  #cv{width:100%;aspect-ratio:1.56/1;max-height:600px;display:block;touch-action:manipulation;cursor:pointer}
+
+  /* --- tabell --- */
+  .tbl{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+  .lane{
+    display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:var(--radius);
+    border:1px solid transparent;cursor:pointer;
+  }
+  .lane:hover{border-color:var(--line)}
+  .lane.hd{cursor:default;padding-bottom:2px;padding-top:2px}
+  .lane.hd:hover{border-color:transparent}
+  .lane.hd span{font-size:11.5px;color:var(--muted);font-weight:400}
+  .lane .nm{flex:0 0 150px;display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600}
+  .lane .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+  .lane .pl{flex:0 0 80px;font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .lane .c{flex:1 1 84px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+  .lane .c em{font-size:11.5px;font-weight:400;color:var(--muted);font-style:normal;margin-left:2px}
+  .lane .gs{flex:0 0 96px;font-size:11.5px;color:var(--line);text-align:right}
+  .lane:hover .gs{color:var(--muted)}
+  .lane.guessed .gs{color:var(--accent)}
+  .lane.hit .gs{color:var(--accent);font-weight:600}
+  .lane.miss .gs{color:var(--muted);text-decoration:line-through}
+  .lane.won .pl{color:var(--accent);font-weight:600}
+  #fraga{font-size:14px;margin:12px 0 0;padding-left:11px;border-left:2px solid var(--accent)}
+  .hint{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+  #msg{font-size:13px;margin-top:10px;min-height:1.6em}
+  #msg b{color:var(--accent)}
+
+  /* Bred skärm: fråga, tabell och text flyttar ut i en egen kolumn bredvid
+     banorna. Banorna smalnar av men behåller sin form — de är 6:1 breda och tål
+     det — och figuren blir mycket lägre, vilket är hela poängen när demon
+     bäddas in i en sida där man annars måste skrolla för att se allt.
+     Banrutans höjd följer av bredden via aspect-ratio, så den krymper med. */
+  @media (min-width:1080px){
+    main{max-width:1160px}
+    .fig{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 350px;
+      column-gap:18px;
+      align-items:start;
+    }
+    #sets{grid-column:1 / -1}
+    #fraga{margin-top:2px}
+    .tbl{margin-top:14px}
+    /* samma kompakta tabell som på telefon — kolumnen är lika smal */
+    .side .lane{flex-wrap:wrap;row-gap:2px;gap:8px}
+    .side .lane .nm{flex:1 1 100%}
+    .side .lane .pl{flex:0 0 58px}
+    .side .lane .c{flex:1 1 58px;font-size:14px}
+    .side .lane .gs{flex:0 0 50px}
+    .side .lane.hd .nm{display:none}
+  }
+
+  /* Smal skärm: banorna behöver höjd, och tabellraderna får bryta så att inga
+     tal knuffas ut ur bilden. */
+  @media (max-width:640px){
+    body{padding:20px 12px 44px}
+    #cv{aspect-ratio:1.1/1;max-height:none}
+    .sh{min-width:0;flex:1 1 44%}
+    .sh svg{width:100%}
+    .lane{flex-wrap:wrap;row-gap:2px}
+    .lane .nm{flex:1 1 100%}
+    .lane .pl{flex:0 0 62px}
+    .lane .c{flex:1 1 70px;font-size:14px}
+    .lane .gs{flex:0 0 52px}
+    .lane.hd .nm{display:none}
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>Vilken kula kommer först?</h1>
+  <p class="sub">Tre backar med samma startpunkt och samma mål. Gissa i vilken ordning kulorna kommer i mål — och håll ett öga på hur lång varje bana är.</p>
+
+  <div class="fig">
+    <div id="sets"></div>
+
+    <div class="figmain">
+    <canvas id="cv" aria-label="Tre kulbanor i genomskärning, en kula i varje."></canvas>
+
+    <div class="row">
+      <button class="btn primary" id="go">Släpp kulorna</button>
+      <button class="btn" id="reset">Nollställ</button>
+      <button class="btn" id="shuffle">Slumpa nya banor</button>
+      <button class="btn" id="vt" disabled>Visa v-t-graf</button>
+      <span class="lbl">Uppspelning</span>
+      <div class="seg" id="speed">
+        <button data-s="0.5" class="on">Normal</button>
+        <button data-s="0.25">Långsam</button>
+        <button data-s="0.1">Mycket långsam</button>
+      </div>
+    </div>
+    </div>
+
+    <div class="side">
+
+    <p id="fraga"></p>
+
+    <div class="tbl" id="tbl">
+      <div class="lane hd">
+        <span class="nm">Bana</span>
+        <span class="pl">Placering</span>
+        <span class="c">Tid</span>
+        <span class="c">Banlängd</span>
+        <span class="c">Fart</span>
+        <span class="gs">Gissning</span>
+      </div>
+    </div>
+
+    <p id="msg"></p>
+    <p class="hint">Tryck på banorna — i figuren eller i listan — i den ordning du tror att kulorna kommer i mål. Två val räcker, det tredje är då redan bestämt; tryck på en gissad bana för att ångra. Kulorna rullar utan friktion, så all höjd blir fart och tillbaka igen. När alla tre är i mål går det att växla till v-t-grafen och flytta tidslinjen i den.</p>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= gemensam geometri =================
+   Alla banor går från samma punkt (0, H) till samma punkt (L, 0) och håller sig
+   mellan de två höjderna. Att ingen bana får gå över starthöjden är det som gör
+   att varje kula säkert når fram; att ingen går under mållinjen är det som gör
+   att alla kommer fram med exakt samma fart. Det enda som skiljer banorna är
+   var på vägen höjden tas ut — och det är precis det tiden beror på. */
+var L = 2.40;      // banans längd i x-led, meter
+var H = 0.40;      // starthöjden över målet, meter
+var G = 9.81;
+var K = 0.4;       // 2/5 för en homogen kula: en del av energin går till rotation
+var R = 0.025;     // kulans radie, meter (rent visuell — kulan är en pärla på tråd)
+var NS = 1200;     // antal sampel per bana
+
+/* ================= monoton spline =================
+   Fritsch–Carlson: kurvan går genom alla punkter, får vågrät tangent i varje
+   topp och dal och skjuter aldrig över. Det senare är avgörande här: så länge
+   ingen brytpunkt ligger över H kan banan inte heller göra det, och kulan blir
+   aldrig stående. */
+function pchip(xs, ys){
+  var n=xs.length, h=[], d=[], m=[], i;
+  if(n===2){
+    return function(x){
+      var t=(x-xs[0])/(xs[1]-xs[0]);
+      return ys[0]+(ys[1]-ys[0])*Math.max(0,Math.min(1,t));
+    };
+  }
+  for(i=0;i<n-1;i++){ h.push(xs[i+1]-xs[i]); d.push((ys[i+1]-ys[i])/h[i]); }
+  m.push(d[0]);
+  for(i=1;i<n-1;i++){
+    if(d[i-1]*d[i] <= 0) m.push(0);
+    else{
+      var w1=2*h[i]+h[i-1], w2=h[i]+2*h[i-1];
+      m.push((w1+w2)/(w1/d[i-1] + w2/d[i]));
+    }
+  }
+  m.push(d[n-2]);
+  return function(x){
+    if(x<=xs[0]) return ys[0];
+    if(x>=xs[n-1]) return ys[n-1];
+    var lo=0, hi=n-1, mid;
+    while(hi-lo>1){ mid=(lo+hi)>>1; if(xs[mid]<=x) lo=mid; else hi=mid; }
+    var t=(x-xs[lo])/h[lo], t2=t*t, t3=t2*t;
+    return ys[lo]*(2*t3-3*t2+1) + h[lo]*m[lo]*(t3-2*t2+t)
+         + ys[lo+1]*(3*t2-2*t3) + h[lo]*m[lo+1]*(t3-t2);
+  };
+}
+
+/* ================= sampling =================
+   Banorna beskrivs parametriskt, t från 0 till 1, inte som y(x). Det är
+   cykloiden som kräver det: den startar lodrätt, och en lodrät tangent har
+   ingen ändlig lutning i x. Fysiken räknas ändå på båglängden s, så
+   parametriseringen behöver bara vara tillräckligt tät. */
+function sample(namn, fn){
+  var tr = {namn:namn, X:new Float64Array(NS+1), Y:new Float64Array(NS+1),
+            S:new Float64Array(NS+1), SL:new Float64Array(NS+1)};
+  var i, p, dx, dy, d;
+  for(i=0;i<=NS;i++){
+    p = fn(i/NS);
+    tr.X[i] = p[0];
+    tr.Y[i] = Math.max(0, p[1]);
+  }
+  tr.X[0]=0;  tr.Y[0]=H;                 // ändpunkterna spikas: alla banor
+  tr.X[NS]=L; tr.Y[NS]=0;                // ska börja och sluta på samma ställe
+  tr.S[0]=0;
+  for(i=1;i<=NS;i++){
+    dx=tr.X[i]-tr.X[i-1]; dy=tr.Y[i]-tr.Y[i-1];
+    tr.S[i] = tr.S[i-1] + Math.max(Math.sqrt(dx*dx+dy*dy), 1e-9);
+  }
+  tr.STOT = tr.S[NS];
+  for(i=0;i<=NS;i++){                    // sin(lutningsvinkel) = dy/ds
+    var a=Math.max(0,i-1), b=Math.min(NS,i+1);
+    d = tr.S[b]-tr.S[a];
+    tr.SL[i] = d>0 ? (tr.Y[b]-tr.Y[a])/d : 0;
+  }
+  tr.est = estTime(tr);
+  return tr;
+}
+
+/* Ungefärlig färdtid, till för att sålla bland slumpade banor. Farten beror
+   bara på höjden, så tiden är en enkel integral ds/v längs banan. Sampel som
+   ligger obetydligt under starthöjden hoppas över: närmast starten är farten
+   nära noll, och där är kvoten ds/v numeriskt värdelös men sträckan försumbar.
+   (Cykloiden startar lodrätt och har många sådana sampel.) */
+function estTime(tr){
+  var t=0, i, ym, h;
+  for(i=1;i<=NS;i++){
+    ym = (tr.Y[i]+tr.Y[i-1])/2;
+    h = H - ym;
+    if(h <= 1e-4) continue;
+    t += (tr.S[i]-tr.S[i-1])/Math.sqrt(2*G*h/(1+K));
+  }
+  return t;
+}
+
+function idxOf(tr, s){
+  var lo=0, hi=NS, m;
+  while(hi-lo>1){ m=(lo+hi)>>1; if(tr.S[m]<=s) lo=m; else hi=m; }
+  return lo;
+}
+function at(tr, s, arr){
+  var i=idxOf(tr,s), d=tr.S[i+1]-tr.S[i];
+  var t = d>0 ? (s-tr.S[i])/d : 0;
+  return arr[i]+(arr[i+1]-arr[i])*t;
+}
+
+/* ================= banformerna ================= */
+function knots(namn, pts){
+  var xs=pts.map(function(p){return p[0];}), ys=pts.map(function(p){return p[1];});
+  var g = pchip(xs, ys);
+  return sample(namn, function(t){ var x=L*t; return [x, g(x)]; });
+}
+
+/* Cykloiden: brakistokronen, snabbaste banan mellan två punkter — här den
+   variant som inte får gå under mållinjen, alltså en halv cykloid ner till sin
+   lägsta punkt och därefter plant fram. Halva cykloiden faller H, så a = H/2
+   och den upptagna sträckan blir aπ. */
+function cycloid(){
+  var a = H/2, xc = a*Math.PI;
+  return sample('Cykloid', function(t){
+    if(t <= 0.5){
+      var th = 2*Math.PI*t;
+      return [a*(th-Math.sin(th)), H - a*(1-Math.cos(th))];
+    }
+    return [xc + (L-xc)*(2*t-1), 0];
+  });
+}
+
+/* Vågbanan: tio vågor pålagda en nedfart. Vågtermen är aldrig negativ, så banan
+   kan inte dyka under mållinjen, och fönstret sin(πu) håller den borta från båda
+   ändpunkterna. Amplituden är vald så att banan blir längre än cykloiden —
+   annars går det inte att visa att längden inte avgör något.
+
+   Underlaget är (1−u)^1,3 och inte den räta linjen (1−u). Med en rak nedfart
+   startar vågbanan i exakt samma lutning som den raka banan, och då är den
+   bara ett längre varv på samma väg: uppenbart sist. Exponenten lutar starten
+   lite mer, så vågbanan tar fart tidigare än den raka och de två hamnar nära
+   varandra i tid — 2,18 mot 2,06 s. Frågan blir då om de tidiga metrarna
+   räcker för att betala för det extra varvet, och det gör de inte. */
+function wave(){
+  return sample('Vågbana', function(t){
+    var y = H*Math.pow(1-t, 1.3) + 0.070*(1-Math.cos(20*Math.PI*t))/2*Math.sin(Math.PI*t);
+    return [L*t, y];
+  });
+}
+
+/* De två kullbanorna har exakt samma form, bara olika höjd på krönet, och den
+   raka banan hamnar mellan dem i tid. Poängen är att genvägen rakt ner är värd
+   sitt pris upp till en viss kullhöjd men inte över den — var gränsen går är en
+   fråga man får prova sig fram till, inte gissa sig till. */
+function hill(namn, top){
+  return knots(namn, [[0,H],[0.45,0.03],[1.10,top],[1.60,top],[L,0]]);
+}
+
+var SETS = [
+  { namn:'Brant eller flack',
+    fraga:'Alla tre banorna faller lika mycket. Spelar det någon roll om höjden tas ut på en gång eller sparas till slutet?',
+    make:function(){ return [
+      knots('Rak',          [[0,H],[L,0]]),
+      knots('Brant först',  [[0,H],[0.50,0.055],[L,0]]),
+      knots('Flack först',  [[0,H],[1.80,0.290],[L,0]])
+    ]; }},
+  { namn:'Kulle i vägen',
+    fraga:'Två banor dyker rakt ner och tar fart, men måste sedan över en kulle. Hur hög får kullen bli innan genvägen inte längre är värd det?',
+    make:function(){ return [
+      knots('Rak', [[0,H],[L,0]]),
+      hill('Låg kulle', 0.150),
+      hill('Hög kulle', 0.370)
+    ]; }},
+  { namn:'Kort mot lång',
+    fraga:'Den raka banan är kortast, vågbanan längst. Är någon av dem snabbast?',
+    make:function(){ return [
+      knots('Rak', [[0,H],[L,0]]),
+      cycloid(),
+      wave()
+    ]; }},
+  { namn:'Slumpa tre banor', rand:true,
+    fraga:'Tre nya banor varje gång. I vilken ordning kommer de i mål?',
+    make:function(){ return makeRandomSet(); }}
+];
+
+/* ================= slumpade banor =================
+   Brytpunkternas höjder lottas fritt, men lägena får ett garanterat minsta
+   avstånd. Taket 0,72·H på inre höjder är inte kosmetiskt: en kulle nära
+   starthöjden gör kulan nästan stillastående på krönet, och då tar loppet
+   orimligt lång tid utan att bli mer intressant. */
+function randomTrack(){
+  var i, n = 2 + Math.floor(Math.random()*3);
+  var xs, ok, tries;
+  for(tries=0; tries<40; tries++){
+    xs = [];
+    for(i=0;i<n;i++) xs.push(0.10*L + Math.random()*0.80*L);
+    xs.sort(function(a,b){return a-b;});
+    ok = true;
+    for(i=1;i<n;i++) if(xs[i]-xs[i-1] < 0.14*L) ok=false;
+    if(ok) break;
+  }
+  if(!ok) return null;
+
+  var pts = [[0,H]];
+  // första brytpunkten får inte ligga så högt att nedfarten blir omärklig
+  var y0 = 0.015 + Math.random()*(H - 0.075 - 0.015);
+  if((H - y0)/xs[0] < 0.06) return null;
+  pts.push([xs[0], y0]);
+  for(i=1;i<n;i++) pts.push([xs[i], 0.015 + Math.random()*(0.72*H - 0.015)]);
+  pts.push([L, 0]);
+
+  var tr = knots('', pts);
+  if(!(tr.est > 0.9 && tr.est < 3.6)) return null;
+  var mx = 0;
+  for(i=1;i<=NS;i++){
+    var dx = tr.X[i]-tr.X[i-1];
+    if(dx > 0) mx = Math.max(mx, Math.abs(tr.Y[i]-tr.Y[i-1])/dx);
+  }
+  if(mx > 3.2) return null;                 // ingen närmast lodrät vägg
+  return tr;
+}
+
+/* Två banor får varken se likadana ut eller komma fram nästan samtidigt —
+   ett lopp där man inte kan se vem som vann är ingen demonstration. */
+function shapeDiff(a, b){
+  var d=0;
+  for(var i=0;i<=NS;i++) d += Math.abs(a.Y[i]-b.Y[i]);
+  return d/(NS+1);
+}
+function makeRandomSet(){
+  var out=[], guard=0, c, j, ok;
+  while(out.length<3 && guard++<800){
+    c = randomTrack();
+    if(!c) continue;
+    ok = true;
+    for(j=0;j<out.length;j++){
+      if(Math.abs(c.est-out[j].est) < 0.07) ok=false;
+      if(shapeDiff(c,out[j]) < 0.025) ok=false;
+    }
+    if(ok) out.push(c);
+  }
+  while(out.length<3) out.push(knots('', [[0,H],[0.4+0.5*out.length,0.05+0.06*out.length],[L,0]]));
+  out.forEach(function(tr,i){ tr.namn = 'Bana '+(i+1); });
+  return out;
+}
+
+/* ================= tillstånd ================= */
+var fragaEl = document.getElementById('fraga');
+var lanes = [];              // { tr, s, v, t, done, place }
+var CUR = 0;                 // vald uppsättning
+var randSet = null;          // senast slumpade uppsättningen
+var running = false, clock = 0, placed = 0, speed = 0.5;
+/* Gissningen är en ordning, inte en vinnare: banornas index i den ordning man
+   tror att de kommer i mål. Andra klicket räcker — den sista placeringen är då
+   redan bestämd, och en klick man inte har något val i är bara i vägen. */
+var gOrder = [];
+function gRank(i){ return gOrder.indexOf(i) + 1; }   // 0 = ingen gissning
+
+/* v-t-grafen är ett efterhandsläge, inte något som ritas medan loppet går.
+   Ritad live blir den ett facit: man ser vem som drar ifrån innan kulorna är
+   framme, och då är gissningen meningslös. Knappen öppnas först när alla tre
+   är i mål. */
+var view = 'banor';          // 'banor' eller 'vt'
+var tCursor = null;          // tidslinjen i grafläget
+var VEND = Math.sqrt(2*G*H/(1+K));   // farten i mål, samma för alla banor
+
+function loadSet(i, force){
+  CUR = i;
+  var trs;
+  if(SETS[i].rand){
+    if(force || !randSet) randSet = makeRandomSet();
+    trs = randSet;
+  } else trs = SETS[i].make();
+  lanes = trs.map(function(tr){
+    return {tr:tr, s:0, v:0, done:false, place:0, ft:0, ts:[], vs:[]};
+  });
+  gOrder = [];
+  fragaEl.textContent = SETS[i].fraga;
+  buildSetButtons();
+  buildTable();
+  reset();
+  resize();
+}
+
+function reset(){
+  running = false; clock = 0; placed = 0; nextSample = SDT;
+  lanes.forEach(function(l){
+    l.s=0; l.v=0; l.done=false; l.place=0; l.ft=0;
+    l.ts=[0]; l.vs=[0];                    // varje kurva börjar i stillastående
+  });
+  view = 'banor'; tCursor = null;
+  vtBtn.disabled = true; vtBtn.textContent = 'Visa v-t-graf';
+  goBtn.textContent = 'Släpp kulorna';
+  readout(); message(); draw();
+}
+
+/* Farten sparas med jämna steg i simulerad tid, inte per bildruta: annars skulle
+   grafens upplösning bero på vilket uppspelningstempo man råkade välja. */
+var SDT = 0.01, nextSample = SDT;
+function sampleSpeeds(){
+  while(clock >= nextSample){
+    lanes.forEach(function(l){
+      if(!l.done){ l.ts.push(nextSample); l.vs.push(l.v); }
+    });
+    nextSample += SDT;
+  }
+}
+
+/* ================= fysik =================
+   Utan friktion är farten helt bestämd av höjden: v = √(2g(H−y)/(1+k)).
+   Positionen stegas fram med accelerationen (annars kommer kulan aldrig ur
+   startläget, där farten är noll) och farten sätts sedan om från energin.
+   Steget är litet nog att tiden blir korrekt på några millisekunder. */
+function step(l, h){
+  var tr = l.tr;
+  var a = -G*at(tr, l.s, tr.SL)/(1+K);
+  var vh = l.v + a*h/2;
+  var s2 = l.s + vh*h;
+
+  if(s2 >= tr.STOT){                                  // i mål
+    var frac = vh*h > 0 ? (tr.STOT - l.s)/(vh*h) : 1;
+    l.ft = clock + Math.max(0, Math.min(1, frac))*h;
+    l.s = tr.STOT;
+    l.v = Math.sqrt(2*G*H/(1+K));
+    l.done = true;
+    l.place = ++placed;
+    l.ts.push(l.ft); l.vs.push(l.v);       // kurvan slutar exakt vid mållinjen
+    return;
+  }
+  l.s = s2;
+  l.v = Math.sqrt(2*G*Math.max(0, H - at(tr, s2, tr.Y))/(1+K));
+}
+
+/* ================= ritning ================= */
+var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+var W=0, Hc=0, SC=1, OX=0, laneY=[], laneH=0;
+var C={};
+function readVars(){
+  var cs = getComputedStyle(document.body);
+  var g = function(n,fb){ var v=cs.getPropertyValue(n).trim(); return v||fb; };
+  C.text=g('--text','#1f1e1d'); C.muted=g('--muted','#6b6862');
+  C.line=g('--line','#d6d2cb'); C.accent=g('--accent','#c2612f');
+  C.track=g('--track','#8a8580'); C.panel=g('--panel','#fff');
+  C.lane=[g('--c1','#c2612f'), g('--c2','#356d94'), g('--c3','#5b8038')];
+}
+readVars();
+
+function resize(){
+  var r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio||1;
+  W = r.width; Hc = r.height;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(Hc*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  var mL=14, mR=14, mT=6, mB=6, gap=12, top=20, bot=8;
+  laneH = (Hc - mT - mB - 2*gap)/3;
+  SC = Math.min((W-mL-mR)/L, (laneH - top - bot)/H);
+  OX = mL + ((W-mL-mR) - L*SC)/2;
+  laneY = [0,1,2].map(function(i){
+    return mT + i*(laneH+gap) + laneH - bot - (laneH - top - bot - H*SC)/2;
+  });
+  draw();
+}
+function X(x){ return OX + x*SC; }
+
+function draw(){
+  ctx.clearRect(0,0,W,Hc);
+  if(!lanes.length || !laneY.length) return;
+  if(view === 'vt'){ drawVT(); return; }
+  lanes.forEach(function(l,i){ drawLane(l, i); });
+}
+
+/* ================= v-t-läget =================
+   Tre paneler i samma ordning och färg som banorna, med gemensamma axlar. Det
+   som ska gå att se utan att räkna: kurvorna slutar på samma höjd men olika
+   långt ut, och ytan under kurvan är sträckan kulan avverkat. Tidslinjen är
+   till för att ställa frågan "var är de andra två just nu?" — samma fråga som
+   när man pausar loppet, men här går den att svara på i efterhand. */
+var FONT = 'px -apple-system,Segoe UI,Roboto,sans-serif';
+function vtLayout(){
+  var mL=58, mR=16, mT=22, mB=26, gap=10, tMax=0;   // mT rymmer tidslinjens etikett
+  lanes.forEach(function(l){ tMax = Math.max(tMax, l.ft); });
+  return {
+    x0:mL, x1:W-mR, mT:mT, ph:(Hc-mT-mB-2*gap)/3, gap:gap,
+    /* Takhöjden är rundligare än farten i mål kräver. Överskottet är inte tomt
+       utrymme utan bandet där banans namn står, ovanför den streckade linjen —
+       annars skriver etiketten över just den linje som är hela poängen. */
+    tMax:(tMax || 1)*1.03, vTop:VEND*1.32
+  };
+}
+function vAtTime(l, t){
+  var n = l.ts.length, lo=0, hi=n-1, m;
+  if(t <= 0) return 0;
+  if(t >= l.ts[n-1]) return l.vs[n-1];
+  while(hi-lo > 1){ m=(lo+hi)>>1; if(l.ts[m] <= t) lo=m; else hi=m; }
+  var d = l.ts[hi]-l.ts[lo];
+  return l.vs[lo] + (l.vs[hi]-l.vs[lo])*(d>0 ? (t-l.ts[lo])/d : 0);
+}
+
+function drawVT(){
+  var LO = vtLayout(), i;
+  var TX = function(t){ return LO.x0 + t/LO.tMax*(LO.x1-LO.x0); };
+  var top = function(i){ return LO.mT + i*(LO.ph+LO.gap); };
+
+  // tidsaxel: samma rutnät genom alla tre panelerna
+  ctx.font = '11'+FONT;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  /* Sista tidssiffran stryks om den skulle hamna i vägen för axelns namn.
+     Rutnätslinjen ritas ändå — det är siffran som krockar, inte strecket. */
+  var guardX = LO.x1 - ctx.measureText('tid (s)').width - 10;
+  for(var tk=0; tk<=LO.tMax; tk+=0.5){
+    ctx.strokeStyle = C.line; ctx.globalAlpha = 0.5; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(TX(tk), top(0)); ctx.lineTo(TX(tk), top(2)+LO.ph);
+    ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = C.muted;
+    if(TX(tk) + ctx.measureText(num(tk,1)).width/2 < guardX)
+      ctx.fillText(num(tk,1), TX(tk), top(2)+LO.ph+6);
+  }
+  ctx.textAlign = 'right';
+  ctx.fillText('tid (s)', LO.x1, top(2)+LO.ph+6);
+
+  // storheten på lodräta axeln: en gång, roterad, mitt för mittenpanelen
+  ctx.save();
+  ctx.translate(13, top(1)+LO.ph/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillStyle = C.muted;
+  ctx.fillText('fart (m/s)', 0, 0);
+  ctx.restore();
+
+  lanes.forEach(function(l, i){
+    var t0 = top(i), bot = t0 + LO.ph, col = C.lane[i], k;
+    var VY = function(v){ return bot - v/LO.vTop*LO.ph; };
+    var n = l.ts.length;
+
+    // farten i mål: samma höjd i alla tre panelerna
+    ctx.save();
+    ctx.setLineDash([4,5]);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(LO.x0, VY(VEND)); ctx.lineTo(LO.x1, VY(VEND));
+    ctx.stroke();
+    ctx.restore();
+
+    // ytan under kurvan, mörkare fram till tidslinjen
+    var tc = tCursor===null ? 0 : Math.min(tCursor, l.ts[n-1]);
+    [[0, tc, 0.22], [tc, l.ts[n-1], 0.08]].forEach(function(seg){
+      if(seg[1] <= seg[0]) return;
+      ctx.beginPath();
+      ctx.moveTo(TX(seg[0]), bot);
+      ctx.lineTo(TX(seg[0]), VY(vAtTime(l, seg[0])));
+      for(k=0;k<n;k++) if(l.ts[k] > seg[0] && l.ts[k] < seg[1]) ctx.lineTo(TX(l.ts[k]), VY(l.vs[k]));
+      ctx.lineTo(TX(seg[1]), VY(vAtTime(l, seg[1])));
+      ctx.lineTo(TX(seg[1]), bot);
+      ctx.closePath();
+      ctx.fillStyle = col; ctx.globalAlpha = seg[2]; ctx.fill(); ctx.globalAlpha = 1;
+    });
+
+    // axlarna
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(LO.x0, bot); ctx.lineTo(LO.x1, bot);
+    ctx.moveTo(LO.x0, bot); ctx.lineTo(LO.x0, t0);
+    ctx.stroke();
+
+    // kurvan
+    ctx.beginPath();
+    ctx.moveTo(TX(l.ts[0]), VY(l.vs[0]));
+    for(k=1;k<n;k++) ctx.lineTo(TX(l.ts[k]), VY(l.vs[k]));
+    ctx.strokeStyle = col; ctx.lineWidth = 2.4;
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // punkten i mål
+    ctx.beginPath(); ctx.arc(TX(l.ft), VY(VEND), 4, 0, 6.2832);
+    ctx.fillStyle = col; ctx.fill();
+
+    // etiketter
+    ctx.font = '600 12.5'+FONT;
+    ctx.fillStyle = col; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(l.tr.namn+'  ·  '+ordinal(l.place)+'  '+num(l.ft,2)+' s', LO.x0+6, t0+3);
+    ctx.font = '11'+FONT;
+    ctx.fillStyle = C.muted; ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(num(VEND,2), LO.x0-5, VY(VEND));
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('0', LO.x0-5, bot);
+  });
+
+  if(tCursor === null) return;
+
+  // tidslinjen, dragbar
+  ctx.save();
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(TX(tCursor), top(0)-4); ctx.lineTo(TX(tCursor), top(2)+LO.ph);
+  ctx.stroke();
+  ctx.restore();
+
+  lanes.forEach(function(l, i){
+    var t0 = top(i), bot = t0 + LO.ph, col = C.lane[i];
+    var VY = function(v){ return bot - v/LO.vTop*LO.ph; };
+    var slut = tCursor >= l.ft, v = vAtTime(l, tCursor);
+    var px = TX(Math.min(tCursor, l.ft)), py = VY(v);
+    ctx.beginPath(); ctx.arc(px, py, slut ? 5 : 4.5, 0, 6.2832);
+    if(slut){                                  // ihålig ring: redan i mål
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+      return;
+    }
+    ctx.fillStyle = col; ctx.fill();
+
+    /* Farten läses av på fartaxeln, inte som en siffra bredvid punkten. Ett tal
+       intill en tidslinje läses som en tid — 1,50 vid linjen 1,51 s är rena
+       fällan. Med en ledarlinje ut till axeln står talet där storheten står,
+       och avläsningen blir samma rörelse som eleverna ska göra på papper. */
+    ctx.save();
+    ctx.setLineDash([3,4]);
+    ctx.strokeStyle = col; ctx.globalAlpha = 0.6; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(LO.x0, py); ctx.lineTo(px, py); ctx.stroke();
+    ctx.restore();
+
+    /* Hoppa över talet om 0 eller farten i mål redan står på samma ställe. Måttet
+       är i bildpunkter, inte i m/s: det är etiketternas höjd som krockar, och
+       panelerna är låga på en telefon. */
+    if(Math.abs(py - VY(VEND)) < 18 || Math.abs(py - bot) < 18) return;
+    ctx.font = '600 11.5'+FONT;
+    ctx.fillStyle = col; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(num(v,2), LO.x0-5, py);
+  });
+
+  // tidslinjens etikett centreras, men viker in mot kanten om den inte får plats
+  ctx.font = '11'+FONT;
+  ctx.fillStyle = C.accent; ctx.textBaseline = 'bottom';
+  var txt = num(tCursor,2)+' s', lx = TX(tCursor), lw = ctx.measureText(txt).width;
+  ctx.textAlign = 'center';
+  if(lx + lw/2 > W-4){ ctx.textAlign = 'right'; lx = W-4; }
+  else if(lx - lw/2 < 2){ ctx.textAlign = 'left'; lx = 2; }
+  ctx.fillText(txt, lx, top(0)-6);
+}
+
+function drawLane(l, i){
+  var tr = l.tr, OY = laneY[i], col = C.lane[i], j;
+  var Y = function(y){ return OY - y*SC; };
+
+  // mållinjen och starthöjden
+  ctx.save();
+  ctx.setLineDash([4,5]);
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(X(0), Y(H)); ctx.lineTo(X(L), Y(H));            // starthöjd
+  ctx.moveTo(X(L), Y(0)); ctx.lineTo(X(L), Y(H));            // mål
+  ctx.stroke();
+  ctx.restore();
+
+  // banan
+  ctx.beginPath();
+  ctx.moveTo(X(tr.X[0]), Y(tr.Y[0]));
+  for(j=1;j<=NS;j++) ctx.lineTo(X(tr.X[j]), Y(tr.Y[j]));
+  ctx.lineTo(X(L), Y(0)); ctx.lineTo(X(0), Y(0)); ctx.closePath();
+  ctx.fillStyle = col; ctx.globalAlpha = 0.09; ctx.fill(); ctx.globalAlpha = 1;
+
+  ctx.beginPath();
+  ctx.moveTo(X(tr.X[0]), Y(tr.Y[0]));
+  for(j=1;j<=NS;j++) ctx.lineTo(X(tr.X[j]), Y(tr.Y[j]));
+  ctx.strokeStyle = col; ctx.lineWidth = 2.6;
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // kulan
+  var cx = at(tr, l.s, tr.X), cy = at(tr, l.s, tr.Y);
+  var rp = Math.max(6, R*SC);
+  ctx.beginPath(); ctx.arc(X(cx), Y(cy), rp, 0, 6.2832);
+  ctx.fillStyle = col; ctx.fill();
+  var ang = l.s/R;                                   // rullar utan att glida
+  ctx.strokeStyle = C.panel; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  ctx.moveTo(X(cx), Y(cy));
+  ctx.lineTo(X(cx)+Math.cos(ang)*rp*0.7, Y(cy)+Math.sin(ang)*rp*0.7);
+  ctx.stroke(); ctx.globalAlpha = 1;
+
+  // etikett
+  ctx.font = '600 12.5px -apple-system,Segoe UI,Roboto,sans-serif';
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = col;
+  var txt = tr.namn;
+  if(l.done) txt += '  ·  ' + ordinal(l.place) + '  ' + num(l.ft,2) + ' s';
+  ctx.fillText(txt, X(0)+2, Y(H) - 7);
+
+  var g = gRank(i);
+  if(g){
+    ctx.font = '11.5px -apple-system,Segoe UI,Roboto,sans-serif';
+    ctx.fillStyle = C.muted;
+    ctx.textAlign = 'right';
+    ctx.fillText('din gissning: ' + ordinal(g), X(L)-2, Y(H) - 7);
+  }
+}
+
+/* ================= avläsningar ================= */
+function num(x,n){ return x.toFixed(n).replace('.',','); }
+function ordinal(p){ return p===1 ? '1:a' : p===2 ? '2:a' : '3:a'; }
+
+var tbl = document.getElementById('tbl');
+function buildTable(){
+  while(tbl.children.length > 1) tbl.removeChild(tbl.lastChild);
+  lanes.forEach(function(l,i){
+    var d = document.createElement('div');
+    d.className = 'lane';
+    d.innerHTML =
+      '<span class="nm"><span class="dot" style="background:var(--c'+(i+1)+')"></span>'+l.tr.namn+'</span>'+
+      '<span class="pl">–</span>'+
+      '<span class="c">–</span>'+
+      '<span class="c">'+num(l.tr.STOT,3)+'<em>m</em></span>'+
+      '<span class="c">–</span>'+
+      '<span class="gs"></span>';
+    d.addEventListener('click', function(){ setGuess(i); });
+    tbl.appendChild(d);
+  });
+}
+function readout(){
+  lanes.forEach(function(l,i){
+    var row = tbl.children[i+1];
+    if(!row) return;
+    var c = row.children;
+    c[1].textContent = l.done ? ordinal(l.place) : '–';
+    c[2].innerHTML = l.done ? num(l.ft,2)+'<em>s</em>'
+                            : (clock>0 ? num(clock,2)+'<em>s</em>' : '–');
+    c[4].innerHTML = num(l.v,2)+'<em>m/s</em>';
+    var g = gRank(i);
+    row.classList.toggle('won', l.place===1);
+    row.classList.toggle('guessed', g>0);
+    row.classList.toggle('hit', g>0 && g===l.place);
+    row.classList.toggle('miss', g>0 && l.place>0 && g!==l.place);
+    c[5].textContent = g ? ordinal(g) : 'gissa';
+  });
+}
+
+var msgEl = document.getElementById('msg'), msgLast = null;
+function say(s){ if(s !== msgLast){ msgEl.innerHTML = s; msgLast = s; } }
+function namesOf(order){
+  return order.map(function(i){ return lanes[i].tr.namn; }).join(' → ');
+}
+function message(){
+  var i, done = lanes.length && lanes.every(function(l){ return l.done; });
+
+  if(!done){
+    if(!gOrder.length){
+      say('I vilken ordning kommer kulorna i mål? Klicka på banorna i tur och ordning.');
+    } else {
+      say('Din gissning: <b>'+namesOf(gOrder)+'</b>.' + (clock>0 ? '' : ' Släpp kulorna.'));
+    }
+    return;
+  }
+
+  var order = lanes.map(function(l,i){ return i; })
+                   .sort(function(a,b){ return lanes[a].place - lanes[b].place; });
+  var winner = order[0];
+  var s = 'Ordning i mål: <b>'+namesOf(order)+'</b>. Vinnartiden '+num(lanes[winner].ft,2)+' s.';
+
+  var kort = 0;
+  for(i=1;i<lanes.length;i++) if(lanes[i].tr.STOT < lanes[kort].tr.STOT) kort=i;
+  if(kort !== winner) s += ' Kortaste banan är '+lanes[kort].tr.namn+' — och den vann inte.';
+
+  if(gOrder.length === 1){
+    var p = lanes[gOrder[0]].place;
+    s += ' Du gissade på '+lanes[gOrder[0]].tr.namn+
+         (p===1 ? ' som vinnare, och det stämde.' : ' som vinnare — den kom '+ordinal(p)+'.');
+  } else if(gOrder.length){
+    var hits = 0;
+    gOrder.forEach(function(li, k){ if(lanes[li].place === k+1) hits++; });
+    /* Med tre kulor kan man inte ha exakt två placeringar rätt: har man två rätt
+       är den tredje också given. Utfallen är alltså 3, 1 eller 0. */
+    if(hits === gOrder.length) s += ' Hela din gissning stämde.';
+    else if(hits) s += ' Rätt på '+hits+' av '+gOrder.length+' placeringar. Du gissade '+namesOf(gOrder)+'.';
+    else s += ' Ingen placering rätt — du gissade '+namesOf(gOrder)+'.';
+  }
+  say(s);
+}
+
+/* Klick på en obesatt bana lägger den sist i gissningen; klick på en redan
+   gissad bana ångrar från och med den. */
+function setGuess(i){
+  if(clock > 0) return;                     // gissningen låses när loppet börjat
+  var r = gRank(i);
+  if(r) gOrder = gOrder.slice(0, r-1);
+  else{
+    gOrder.push(i);
+    if(gOrder.length === lanes.length-1){   // sista placeringen är redan given
+      for(var j=0;j<lanes.length;j++) if(gOrder.indexOf(j) < 0) gOrder.push(j);
+    }
+  }
+  readout(); message(); draw();
+}
+
+/* ================= knappar ================= */
+var setsEl = document.getElementById('sets');
+function previewPaths(trs){
+  var w=98, h=30, pad=3.5;
+  return trs.map(function(tr,i){
+    var pts=[], j, k, M=200;          // tätt nog att vågbanans toppar syns
+    for(k=0;k<=M;k++){
+      j = Math.round(k/M*NS);
+      pts.push((pad + tr.X[j]/L*(w-2*pad)).toFixed(1)+' '+
+               (h-pad - tr.Y[j]/H*(h-2*pad)).toFixed(1));
+    }
+    return '<path class="p'+(i+1)+'" d="M'+pts.join(' L')+'"/>';
+  }).join('');
+}
+function buildSetButtons(){
+  setsEl.innerHTML = '';
+  SETS.forEach(function(S,i){
+    var trs = S.rand ? (randSet || (randSet = makeRandomSet())) : S.make();
+    var b = document.createElement('button');
+    b.className = 'sh' + (i===CUR ? ' on' : '');
+    b.innerHTML = '<svg viewBox="0 0 98 30">'+previewPaths(trs)+'</svg>'+S.namn;
+    b.addEventListener('click', function(){ loadSet(i, S.rand); });
+    setsEl.appendChild(b);
+  });
+}
+
+var goBtn = document.getElementById('go'), vtBtn = document.getElementById('vt');
+goBtn.addEventListener('click', function(){
+  if(lanes.every(function(l){ return l.done; })){ reset(); return; }
+  if(running){ running=false; goBtn.textContent='Fortsätt'; }
+  else{ running=true; goBtn.textContent='Pausa'; last=0; }
+});
+document.getElementById('reset').addEventListener('click', function(){ reset(); });
+document.getElementById('shuffle').addEventListener('click', function(){
+  loadSet(SETS.length-1, true);
+});
+vtBtn.addEventListener('click', function(){
+  if(view === 'vt'){ view = 'banor'; vtBtn.textContent = 'Visa v-t-graf'; }
+  else{
+    view = 'vt'; vtBtn.textContent = 'Visa banorna';
+    // tidslinjen parkeras där vinnaren gick i mål: då står de andra två kvar
+    if(tCursor === null) lanes.forEach(function(l){ if(l.place===1) tCursor = l.ft; });
+  }
+  draw();
+});
+document.querySelectorAll('#speed button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.querySelectorAll('#speed button').forEach(function(o){o.classList.remove('on');});
+    b.classList.add('on'); speed = parseFloat(b.dataset.s);
+  });
+});
+
+/* click, inte pointerdown: på en touchskärm ska en skrollning som råkar börja
+   i figuren inte räknas som en gissning. */
+cv.addEventListener('click', function(e){
+  if(view === 'vt'){ setCursor(e); return; }
+  var r = cv.getBoundingClientRect(), y = e.clientY - r.top, i;
+  for(i=0;i<3;i++){
+    if(Math.abs(y - (laneY[i] - H*SC/2)) < laneH/2){ setGuess(i); return; }
+  }
+});
+/* Tidslinjen går att dra med musen. På touch räcker det att peka på ett nytt
+   ställe — att dra fingret där ska fortfarande skrolla sidan. */
+function setCursor(e){
+  var r = cv.getBoundingClientRect(), LO = vtLayout(), tEnd = 0;
+  lanes.forEach(function(l){ tEnd = Math.max(tEnd, l.ft); });
+  var t = (e.clientX - r.left - LO.x0)/(LO.x1 - LO.x0)*LO.tMax;
+  tCursor = Math.max(0, Math.min(tEnd, t));
+  draw();
+}
+cv.addEventListener('pointermove', function(e){
+  if(view === 'vt' && e.buttons && e.pointerType === 'mouse') setCursor(e);
+});
+
+/* ================= animation ================= */
+var last = 0;
+function frame(ts){
+  if(running){
+    if(!last) last = ts;
+    var dt = Math.min(0.05, (ts-last)/1000)*speed;
+    last = ts;
+    var hStep = 0.0004, n = Math.min(2000, Math.ceil(dt/hStep)), h = dt/n;
+    for(var i=0;i<n;i++){
+      lanes.forEach(function(l){ if(!l.done) step(l, h); });
+      clock += h;
+      sampleSpeeds();
+      if(lanes.every(function(l){ return l.done; })){ running=false; break; }
+      if(clock > 15){ running=false; break; }
+    }
+    if(!running){
+      var alla = lanes.every(function(l){ return l.done; });
+      goBtn.textContent = alla ? 'Kör igen' : 'Fortsätt';
+      if(alla) vtBtn.disabled = false;               // grafen öppnas först nu
+    }
+    draw(); readout(); message();
+  } else last = 0;
+  requestAnimationFrame(frame);
+}
+
+if(window.matchMedia){
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if(mq.addEventListener) mq.addEventListener('change', function(){ readVars(); draw(); });
+}
+window.addEventListener('resize', resize);
+
+loadSet(0, false);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

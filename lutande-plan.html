@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lutande plan</title>
+<style>
+:root{
+  --rod:#c81e28;
+  --bla:#145ab4;
+  --gron:#148246;
+  --ram:#5a8c3c;
+  --papper:#fbfaf6;
+  --blackish:#1d1d1b;
+  --gra:#6b6b66;
+  --ljusgra:#eceae2;
+  /* gemensam satsbredd: all text, alla ekvationer och alla rutor delar
+     samma kolumn, annars centreras de mot olika mitt */
+  --matt:880px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html,body{height:100%;overflow:hidden;background:#dcdad2}
+
+body{
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:var(--blackish);
+  -webkit-font-smoothing:antialiased;
+}
+
+#stage{
+  width:1600px;height:900px;flex:none;
+  transform-origin:center center;
+  background:var(--papper);
+  box-shadow:0 10px 40px rgba(0,0,0,.25);
+  display:grid;
+  grid-template-columns:150px 1fr;
+  overflow:hidden;
+  position:relative;
+}
+
+/* ---------------- progressionsvisare ---------------- */
+#rail{
+  background:#f4f2ea;
+  border-right:1px solid #e0ddd2;
+  padding:44px 0 44px 0;
+  display:flex;flex-direction:column;align-items:center;gap:18px;
+}
+.railrow{display:flex;flex-direction:column;align-items:center;gap:7px}
+.railnum{font-size:15px;letter-spacing:.09em;color:#9b9a92;font-weight:700}
+.railrow.active .railnum{color:var(--ram)}
+.raildots{display:flex;flex-direction:column;gap:6px}
+.dot{
+  width:11px;height:11px;border-radius:50%;
+  border:1.7px solid #c9c6ba;background:transparent;
+  transition:background .18s, border-color .18s;
+}
+.dot.done{background:#c9c6ba}
+.dot.now{background:var(--ram);border-color:var(--ram);transform:scale(1.28)}
+.raillabel{
+  writing-mode:vertical-rl;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:#a8a69c;margin-top:6px;
+}
+
+/* ---------------- scen ---------------- */
+#deck{position:relative;overflow:hidden}
+
+.slide{
+  position:absolute;inset:0;
+  padding:58px 74px 108px 62px;
+  display:none;
+  flex-direction:column;
+}
+.slide.on{display:flex}
+
+.slide.two{
+  display:none;
+  grid-template-columns:1fr 1fr;
+  gap:52px;align-items:center;
+}
+.slide.two.on{display:grid}
+
+h1{font-size:64px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+h2{font-size:20px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ram)}
+h3{font-size:40px;font-weight:700;letter-spacing:-.01em;line-height:1.15;margin-top:4px}
+
+.rubrik{margin-bottom:30px}
+.rubrik .strecket{height:3px;background:var(--ram);margin-top:16px;width:100%}
+.rubrik.svar .strecket{background:#cfcdc2;height:2px}
+.rubrik.svar h2{color:#a3a199}
+
+p{font-size:25px;line-height:1.5;margin-bottom:19px;max-width:var(--matt)}
+p.liten{font-size:21px;line-height:1.5;color:#4a4a46}
+ul{margin:0 0 19px 26px;font-size:25px;line-height:1.5;max-width:var(--matt)}
+li{margin-bottom:9px}
+b{font-weight:700}
+em{font-style:italic}
+
+.del{font-weight:700}
+
+/* matematik */
+.m{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:1.03em}
+.m .up{font-style:normal}
+.m sub{font-style:normal;font-size:.68em;vertical-align:-.22em}
+.blockm{
+  font-family:Georgia,"Times New Roman",serif;font-style:italic;
+  font-size:34px;text-align:center;margin:20px 0 24px;max-width:var(--matt);
+}
+.blockm .up{font-style:normal}
+.blockm sub{font-style:normal;font-size:.65em;vertical-align:-.22em}
+
+.ruta{
+  display:inline-block;border:2px solid var(--blackish);
+  padding:11px 24px;border-radius:3px;background:#fff;
+}
+.slutruta{
+  display:inline-block;border:3px solid var(--ram);
+  background:#f2f5ec;padding:20px 46px;border-radius:5px;font-size:44px;
+}
+.gron{
+  background:var(--ljusgra);border-left:5px solid var(--ram);
+  padding:20px 26px;margin:6px 0 24px;max-width:var(--matt);
+}
+.mitt{max-width:var(--matt);text-align:center}
+.gron p{margin-bottom:0;font-size:25px}
+.ledtrad{
+  margin-top:auto;font-size:21px;line-height:1.5;color:#5c5b55;
+  border-top:1px solid #dedbd0;padding-top:18px;max-width:var(--matt);
+}
+.ledtrad i{font-style:italic;color:#3f3e3a}
+.ledtrad div+div{margin-top:9px}
+
+.center{display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1}
+.center p{text-align:center}
+
+/* figur */
+.figurplats{display:flex;align-items:center;justify-content:center}
+.figurplats svg{width:100%;height:auto;max-height:660px}
+
+.textkol{align-self:center}
+.textkol p:last-child{margin-bottom:0}
+
+/* titelsida */
+.titel-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:64px;flex:1;align-items:center}
+.titel-vanster h1{margin-bottom:14px}
+.undertitel{font-size:30px;color:#55544e;font-family:Georgia,serif;font-style:italic}
+.titelstreck{height:4px;background:var(--ram);width:180px;margin:26px 0 30px}
+
+/* tabell */
+table{border-collapse:collapse;font-size:22px;width:100%}
+th{text-align:left;font-weight:700;padding:9px 12px 9px 0;border-bottom:2px solid var(--blackish)}
+td{padding:9px 12px 9px 0;border-bottom:1px solid #ddd9cd}
+tr:last-child td{border-bottom:2px solid var(--blackish)}
+
+/* harledning */
+.harled{
+  font-family:Georgia,"Times New Roman",serif;font-size:31px;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:16px 20px;align-items:baseline;margin:8px 0 6px;max-width:var(--matt);
+}
+.harled .v{text-align:right;font-style:italic}
+.harled .h{text-align:left;font-style:italic}
+.harled .k{
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-style:normal;font-size:19px;color:var(--gra);padding-left:26px;
+}
+.harled .up{font-style:normal}
+.harled sub{font-style:normal;font-size:.65em;vertical-align:-.22em}
+.brak{display:inline-block;vertical-align:-.62em;text-align:center;font-size:.86em}
+.brak .tal{display:block;padding:0 6px 3px}
+.brak .namn{display:block;padding:3px 6px 0;border-top:1.6px solid currentColor}
+.strykt{position:relative;display:inline-block}
+.strykt::after{
+  content:"";position:absolute;left:-3px;right:-3px;top:52%;
+  height:2px;background:var(--rod);transform:rotate(-14deg);
+}
+
+/* navigering */
+.nav{
+  position:absolute;right:64px;bottom:34px;
+  display:flex;align-items:center;gap:14px;
+}
+button{
+  font-family:inherit;font-size:20px;cursor:pointer;
+  border-radius:6px;border:1.8px solid #c6c3b7;background:#fff;
+  color:var(--blackish);padding:13px 20px;transition:.15s;
+}
+button:hover:not(:disabled){border-color:var(--ram);color:var(--ram)}
+button:disabled{opacity:.3;cursor:default}
+#next{
+  background:var(--ram);border-color:var(--ram);color:#fff;
+  font-weight:700;padding:13px 30px;
+}
+#next:hover{background:#4c7a31;border-color:#4c7a31;color:#fff}
+#tal{
+  position:absolute;left:212px;bottom:44px;
+  font-size:18px;color:#a8a69c;letter-spacing:.05em;
+}
+
+/* tvåspaltiga sidor får något mindre brödtext så att inget spiller över */
+.slide.two p{font-size:22px}
+.slide.two p.liten{font-size:19px}
+.slide.two .blockm{font-size:28px}
+
+/* svg-lager */
+svg .lager{display:none}
+svg.v-fg .l-fg,
+svg.v-komp .l-komp,
+svg.v-norm .l-norm,
+svg.v-frik .l-frik{display:inline}
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <aside id="rail"></aside>
+
+  <div id="deck">
+
+  <!-- ============ 0 TITEL ============ -->
+  <section class="slide on" data-step="0" data-nav="Sätt igång">
+    <div class="titel-grid">
+      <div class="titel-vanster">
+        <h1>Lutande plan</h1>
+        <div class="undertitel">Från figur till <span class="m">μ</span> = <span class="m"><span class="up">tan</span>(φ)</span></div>
+        <div class="titelstreck"></div>
+        <p class="liten"><b>Situationen:</b> En låda glider nedför ett lutande plan. Planets lutningsvinkel är <span class="m">φ</span> och lådans massa är <span class="m">m</span>. Vi räknar med bokstäver hela vägen, inga siffror.</p>
+      </div>
+      <div>
+        <h2>Så gör du</h2>
+        <ul style="font-size:23px;margin-top:16px">
+          <li>Uppgiften har sex steg. Varje steg är en fråga.</li>
+          <li>Svaret kommer först när du klickar fram det. Klicka inte innan du gjort ditt eget försök.</li>
+          <li>Rita på ett eget papper. Använd <em>samma</em> figur hela vägen och lägg till en sak i taget. Det är hela poängen.</li>
+        </ul>
+        <div class="gron" style="margin-top:26px">
+          <p style="font-size:22px;margin-bottom:8px"><b>Två ritregler</b></p>
+          <p style="font-size:22px;margin-bottom:6px">Krafter ritas som <b>heldragna</b> pilar.</p>
+          <p style="font-size:22px">Komposanter ritas som <b>streckade</b> pilar.</p>
+        </div>
+        <p class="liten" style="margin-bottom:0">Då syns det direkt att en kraft och dess komposanter inte är tre olika krafter, utan samma kraft beskriven på två sätt.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 1 FRÅGA ============ -->
+  <section class="slide" data-step="1" data-kind="f" data-nav="Visa svar steg 1">
+    <div class="rubrik">
+      <h2>Steg 1</h2>
+      <h3>Rita situationen</h3>
+      <div class="strecket"></div>
+    </div>
+    <p>Rita ett lutande plan. Markera lutningsvinkeln och kalla den <span class="m">φ</span>. Lägg en låda på planet.</p>
+    <p>Ta god plats på papperet. Planet ska rymma en hel del pilar innan vi är klara, och lådan ska ligga en bit upp längs planet, inte längst ned i hörnet.</p>
+    <p>Markera också lådans tyngdpunkt med en punkt. Alla krafter kommer att ritas ut från den punkten, utom de som verkar i kontaktytan mot planet.</p>
+  </section>
+
+  <!-- ============ 1 SVAR ============ -->
+  <section class="slide two" data-step="1" data-kind="s" data-lager="" data-nav="Vidare till steg 2">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik svar">
+        <h2>Svar steg 1</h2>
+        <div class="strecket"></div>
+      </div>
+      <p>Vinkeln <span class="m">φ</span> sitter mellan planet och det vågräta underlaget. Punkten i lådans mitt är tyngdpunkten.</p>
+      <p>Ingen kraft är utsatt ännu. Det kommer nu.</p>
+    </div>
+  </section>
+
+  <!-- ============ 2 FRÅGA ============ -->
+  <section class="slide" data-step="2" data-kind="f" data-nav="Visa svar steg 2">
+    <div class="rubrik">
+      <h2>Steg 2</h2>
+      <h3>Tyngdkraften och dess komposanter</h3>
+      <div class="strecket"></div>
+    </div>
+    <p><span class="del">a)</span> Rita in tyngdkraften <span class="m">F<sub>g</sub></span> på lådan. Skriv ut uttrycket för hur stor den är.</p>
+    <p><span class="del">b)</span> Tyngdkraften pekar rakt ned, men lådan kan bara röra sig <em>längs</em> planet. Dela därför upp tyngdkraften i en komposant <em>längs</em> planet, kalla den <span class="m">F<sub>g∥</sub></span>, och en komposant <em>vinkelrätt mot</em> planet, kalla den <span class="m">F<sub>g⊥</sub></span>. Skriv ut ett uttryck för hur stor var och en av dem är.</p>
+    <p><span class="del">c)</span> Vilken av komposanterna är det som drar lådan nedför planet? Hur stor är den kraften?</p>
+    <div class="ledtrad">
+      <div><i>Ledtråd till b):</i> Vinkeln mellan <span class="m">F<sub>g</sub></span> och komposanten vinkelrätt mot planet är också <span class="m">φ</span>. Det är samma vinkel som planets lutning. Rita in den i figuren. Sedan är det ren trigonometri i en rätvinklig triangel.</div>
+    </div>
+  </section>
+
+  <!-- ============ 2 SVAR ============ -->
+  <section class="slide two" data-step="2" data-kind="s" data-lager="fg komp" data-nav="Vidare till steg 3">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik svar">
+        <h2>Svar steg 2</h2>
+        <div class="strecket"></div>
+      </div>
+      <p style="margin-bottom:6px"><span class="del">a)</span> Tyngdkraften är <span class="m">F<sub>g</sub></span> = <span class="m">mg</span>, och den pekar rakt nedåt oavsett hur planet lutar.</p>
+      <p style="margin-bottom:6px"><span class="del">b)</span> Med vinkeln <span class="m">φ</span> inritad blir komposanterna kateter i en rätvinklig triangel där <span class="m">F<sub>g</sub></span> är hypotenusan:</p>
+      <div class="blockm" style="margin:14px 0 16px">
+        F<sub>g∥</sub> = mg <span class="up">sin</span>(φ)<span style="font-style:normal;padding:0 26px">och</span>F<sub>g⊥</sub> = mg <span class="up">cos</span>(φ)
+      </div>
+      <p style="margin-bottom:10px"><span class="del">c)</span> Det är komposanten <em>längs</em> planet som drar lådan nedför:</p>
+      <div style="text-align:center;margin-bottom:18px">
+        <span class="ruta"><span class="blockm" style="display:inline;font-size:30px">F<sub>g∥</sub> = mg <span class="up">sin</span>(φ)</span></span>
+      </div>
+      <p class="liten" style="margin-bottom:0">De streckade pilarna är inte nya krafter. Det finns fortfarande bara <em>en</em> tyngdkraft. Vi har beskrivit den med två tal istället för ett.</p>
+    </div>
+  </section>
+
+  <!-- ============ 3 FRÅGA ============ -->
+  <section class="slide" data-step="3" data-kind="f" data-nav="Visa svar steg 3">
+    <div class="rubrik">
+      <h2>Steg 3</h2>
+      <h3>Normalkraften</h3>
+      <div class="strecket"></div>
+    </div>
+    <p>Lådan trycker mot planet, och planet trycker tillbaka. Den kraften kallas normalkraften <span class="m">F<sub>N</sub></span>.</p>
+    <p><span class="del">a)</span> Rita in <span class="m">F<sub>N</sub></span> i din figur. Tänk efter var den ska utgå ifrån och åt vilket håll den ska peka.</p>
+    <p><span class="del">b)</span> Skriv ut ett uttryck för hur stor <span class="m">F<sub>N</sub></span> är.</p>
+    <div class="ledtrad">
+      <div><i>Ledtråd till b):</i> Lådan sjunker inte ned genom planet, och den lyfter inte från det. Vad säger det om krafterna i riktningen vinkelrätt mot planet? Du har redan räknat ut den ena av dem i steg 2.</div>
+    </div>
+  </section>
+
+  <!-- ============ 3 SVAR ============ -->
+  <section class="slide two" data-step="3" data-kind="s" data-lager="fg komp norm" data-nav="Vidare till steg 4">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik svar">
+        <h2>Svar steg 3</h2>
+        <div class="strecket"></div>
+      </div>
+      <p><span class="del">a)</span> Normalkraften utgår från kontaktytan och pekar <em>vinkelrätt ut från planet</em>, inte rakt uppåt. Ordet ”normal” betyder just vinkelrät.</p>
+      <p style="margin-bottom:8px"><span class="del">b)</span> Lådan rör sig inte bort från planet och inte in i det. I riktningen vinkelrätt mot planet är krafterna alltså lika stora och motriktade:</p>
+      <div class="blockm" style="margin:12px 0 18px">
+        F<sub>N</sub> = F<sub>g⊥</sub> = mg <span class="up">cos</span>(φ)
+      </div>
+      <p class="liten" style="margin-bottom:0">Detta är den vanligaste fällan på lutande plan: <span class="m">F<sub>N</sub></span> är <em>inte</em> lika med <span class="m">mg</span>. Bara på ett vågrätt underlag, när <span class="m">φ</span> = 0 och <span class="m"><span class="up">cos</span>(0)</span> = 1, blir de lika stora.</p>
+    </div>
+  </section>
+
+  <!-- ============ 4 FRÅGA ============ -->
+  <section class="slide" data-step="4" data-kind="f" data-nav="Visa svar steg 4">
+    <div class="rubrik">
+      <h2>Steg 4</h2>
+      <h3>Friktionskraften</h3>
+      <div class="strecket"></div>
+    </div>
+    <p>Lådan glider nedför planet. Mellan lådan och planet finns friktion.</p>
+    <p><span class="del">a)</span> Rita in friktionskraften <span class="m">F<sub>μ</sub></span> i din figur. Åt vilket håll pekar den?</p>
+    <p><span class="del">b)</span> Skriv ut ett uttryck för hur stor <span class="m">F<sub>μ</sub></span> är. Använd friktionstalet <span class="m">μ</span>.</p>
+    <div class="ledtrad">
+      <div><i>Ledtråd till a):</i> Friktion motverkar alltid rörelsen. Vilket håll rör sig lådan åt?</div>
+      <div><i>Ledtråd till b):</i> Friktionskraften beror på hur hårt ytorna pressas mot varandra. Vilken kraft beskriver det? Den räknade du ut i steg 3.</div>
+    </div>
+  </section>
+
+  <!-- ============ 4 SVAR ============ -->
+  <section class="slide two" data-step="4" data-kind="s" data-lager="fg komp norm frik" data-nav="Vidare till steg 5">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik svar">
+        <h2>Svar steg 4</h2>
+        <div class="strecket"></div>
+      </div>
+      <p><span class="del">a)</span> Lådan glider nedför planet, så friktionskraften pekar <em>uppför</em> planet. Den ligger längs planet, aldrig vinkelrätt mot det.</p>
+      <p style="margin-bottom:8px"><span class="del">b)</span> Friktionskraften är friktionstalet gånger normalkraften, <span class="m">F<sub>μ</sub></span> = <span class="m">μF<sub>N</sub></span>, och eftersom vi vet att <span class="m">F<sub>N</sub></span> = <span class="m">mg <span class="up">cos</span>(φ)</span> blir det</p>
+      <div style="text-align:center;margin:16px 0 20px">
+        <span class="ruta"><span class="blockm" style="display:inline;font-size:30px">F<sub>μ</sub> = μ mg <span class="up">cos</span>(φ)</span></span>
+      </div>
+      <p class="liten" style="margin-bottom:0">Nu är figuren färdig. Alla krafter som verkar på lådan är inritade: <span class="m">F<sub>g</sub></span> med sina två komposanter, <span class="m">F<sub>N</sub></span> och <span class="m">F<sub>μ</sub></span>.</p>
+    </div>
+  </section>
+
+  <!-- ============ 5 FRÅGA ============ -->
+  <section class="slide" data-step="5" data-kind="f" data-nav="Visa svar steg 5">
+    <div class="rubrik">
+      <h2>Steg 5</h2>
+      <h3>Kraftjämvikt</h3>
+      <div class="strecket"></div>
+    </div>
+    <p>Hittills har vi inte sagt något om hur lådan rör sig. Den kan glida allt fortare, den kan bromsas in, eller så kan den glida med oförändrad hastighet. Figuren ser likadan ut i alla tre fallen.</p>
+    <p style="margin-bottom:12px">Nu väljer vi ut ett av fallen och ser vad det innebär:</p>
+    <div class="gron">
+      <p>Vi låter lådan glida nedför planet med <b>konstant hastighet</b>. Hastigheten ändras alltså inte, och då är accelerationen noll.</p>
+    </div>
+    <p>Vad säger Newtons andra lag om den resulterande kraften längs planet när <span class="m">a</span> = 0? Ställ upp en likhet för denna situation. Vilka två krafter längs planet är lika stora?</p>
+    <div class="ledtrad">
+      <div><i>Ledtråd:</i> Titta bara på riktningen längs planet. Där finns exakt två krafter, och de pekar åt var sitt håll.</div>
+    </div>
+  </section>
+
+  <!-- ============ 5 SVAR ============ -->
+  <section class="slide two" data-step="5" data-kind="s" data-lager="fg komp norm frik" data-nav="Vidare till steg 6">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik svar">
+        <h2>Svar steg 5</h2>
+        <div class="strecket"></div>
+      </div>
+      <p style="margin-bottom:8px">Längs planet verkar två krafter åt var sitt håll: <span class="m">F<sub>g∥</sub></span> nedför och <span class="m">F<sub>μ</sub></span> uppför. Konstant hastighet betyder <span class="m">a</span> = 0, och Newtons andra lag <span class="m">F</span> = <span class="m">ma</span> ger då att den resulterande kraften är noll:</p>
+      <div class="blockm" style="margin:14px 0 16px">F<sub>μ</sub> = F<sub>g∥</sub></div>
+      <p style="margin-bottom:10px">Med uttrycken insatta:</p>
+      <div style="text-align:center;margin-bottom:20px">
+        <span class="ruta"><span class="blockm" style="display:inline;font-size:30px">μ mg <span class="up">cos</span>(φ) = mg <span class="up">sin</span>(φ)</span></span>
+      </div>
+      <p class="liten" style="margin-bottom:0">Titta noga på den likheten innan du går vidare. Något står på båda sidor.</p>
+    </div>
+  </section>
+
+  <!-- ============ 6 FRÅGA ============ -->
+  <section class="slide" data-step="6" data-kind="f" data-nav="Visa svar steg 6">
+    <div class="rubrik">
+      <h2>Steg 6</h2>
+      <h3>Visa att <span class="m" style="font-size:1em">μ</span> = <span class="m" style="font-size:1em"><span class="up">tan</span>(φ)</span></h3>
+      <div class="strecket"></div>
+    </div>
+    <p style="margin-bottom:6px">Utgå från likheten i steg 5:</p>
+    <div class="blockm" style="margin:10px 0 22px">μ mg <span class="up">cos</span>(φ) = mg <span class="up">sin</span>(φ)</div>
+    <p><span class="del">a)</span> Lös ut <span class="m">μ</span> och visa att <span class="m">μ</span> = <span class="m"><span class="up">tan</span>(φ)</span>.</p>
+    <p><span class="del">b)</span> Titta på vad som försvann på vägen. Vilken storhet finns <em>inte</em> kvar i slutresultatet?</p>
+    <p><span class="del">c)</span> Förutsäg innan du klickar vidare: om vi lägger en tung vikt ovanpå lådan, så att massan fördubblas. Vid vilken lutning glider den då? Samma vinkel, större vinkel eller mindre vinkel?</p>
+  </section>
+
+  <!-- ============ 6 SVAR A ============ -->
+  <section class="slide" data-step="6" data-kind="s" data-nav="Vad betyder det?">
+    <div class="rubrik svar">
+      <h2>Svar steg 6</h2>
+      <div class="strecket"></div>
+    </div>
+    <p style="margin-bottom:4px"><span class="del">a)</span> Vi utgår från jämviktsvillkoret och stryker det som står på båda sidor.</p>
+    <div class="harled">
+      <div class="v">μ mg <span class="up">cos</span>(φ)</div><div class="h">= mg <span class="up">sin</span>(φ)</div><div class="k"></div>
+      <div class="v">μ <span class="strykt">mg</span> <span class="up">cos</span>(φ)</div><div class="h">= <span class="strykt">mg</span> <span class="up">sin</span>(φ)</div><div class="k">dividera båda led med <span class="m">mg</span></div>
+      <div class="v">μ <span class="up">cos</span>(φ)</div><div class="h">= <span class="up">sin</span>(φ)</div><div class="k"></div>
+      <div class="v">μ</div><div class="h">= <span class="brak"><span class="tal"><span class="up">sin</span>(φ)</span><span class="namn"><span class="up">cos</span>(φ)</span></span></div><div class="k">dividera båda led med <span class="m"><span class="up">cos</span>(φ)</span></div>
+      <div class="v">μ</div><div class="h">= <span class="up">tan</span>(φ)</div><div class="k"></div>
+    </div>
+    <div class="mitt" style="margin-top:26px">
+      <span class="slutruta"><span style="font-family:Georgia,serif;font-style:italic">μ = <span style="font-style:normal">tan</span>(φ)</span></span>
+    </div>
+  </section>
+
+  <!-- ============ 6 SVAR B ============ -->
+  <section class="slide two" data-step="6" data-kind="s" data-lager="fg komp norm frik" data-nav="Sammanfattning">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik svar">
+        <h2>Svar steg 6, forts.</h2>
+        <div class="strecket"></div>
+      </div>
+      <p><span class="del">b)</span> Massan <span class="m">m</span> försvann. Och tyngdaccelerationen <span class="m">g</span> också. Kvar står bara friktionstalet och vinkeln.</p>
+      <p style="margin-bottom:8px"><span class="del">c)</span> <b>Samma vinkel.</b> Att fördubbla massan ändrar ingenting.</p>
+      <p class="liten">Det låter fel, och nästan alla gissar att den tunga lådan glider lättare. En tyngre låda dras visserligen hårdare nedför planet, men samtidigt pressas den hårdare mot planet, så friktionen växer exakt lika mycket. De två effekterna tar ut varandra, och därför står det inget <span class="m">m</span> i svaret.</p>
+      <div class="gron" style="margin-bottom:0">
+        <p style="font-size:22px"><b>Och det går att mäta.</b> Lägg en bok på ett bräde och luta det tills boken glider. Mät vinkeln. Då vet du friktionstalet mellan bok och bräde, utan att väga någonting och utan att mäta en enda kraft. Lägg sedan på några vikter ovanpå boken och gör om försöket.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SAMMANFATTNING ============ -->
+  <section class="slide two" data-step="7" data-lager="fg komp norm frik" data-nav="Börja om">
+    <div class="figurplats"></div>
+    <div class="textkol">
+      <div class="rubrik">
+        <h2>Sammanfattning</h2>
+        <div class="strecket"></div>
+      </div>
+      <table>
+        <tr><th>Kraft</th><th>Uttryck</th></tr>
+        <tr><td>Tyngdkraft</td><td><span class="m">F<sub>g</sub> = mg</span></td></tr>
+        <tr><td>Komposant längs planet</td><td><span class="m">F<sub>g∥</sub> = mg <span class="up">sin</span>(φ)</span></td></tr>
+        <tr><td>Komposant vinkelrätt mot planet</td><td><span class="m">F<sub>g⊥</sub> = mg <span class="up">cos</span>(φ)</span></td></tr>
+        <tr><td>Normalkraft</td><td><span class="m">F<sub>N</sub> = mg <span class="up">cos</span>(φ)</span></td></tr>
+        <tr><td>Friktionskraft</td><td><span class="m">F<sub>μ</sub> = μF<sub>N</sub> = μ mg <span class="up">cos</span>(φ)</span></td></tr>
+      </table>
+      <p class="liten" style="margin:22px 0 8px">Vid konstant hastighet nedför planet gäller kraftjämvikt längs planet:</p>
+      <div class="blockm" style="font-size:29px;margin:8px 0 20px">
+        μ mg <span class="up">cos</span>(φ) = mg <span class="up">sin</span>(φ)
+        <span style="font-style:normal;padding:0 20px">⟹</span>
+        μ = <span class="up">tan</span>(φ)
+      </div>
+      <ul style="font-size:20px;line-height:1.45;margin-bottom:0">
+        <li><span class="m"><span class="up">sin</span>(φ)</span> hör till riktningen <em>längs</em> planet, <span class="m"><span class="up">cos</span>(φ)</span> till riktningen <em>vinkelrätt</em> mot det.</li>
+        <li>Normalkraften är <span class="m">mg <span class="up">cos</span>(φ)</span>, inte <span class="m">mg</span>.</li>
+        <li>Konstant hastighet betyder <span class="m">a</span> = 0, vilket betyder kraftjämvikt.</li>
+        <li>Friktionstalet går att bestämma genom att bara mäta en vinkel.</li>
+      </ul>
+    </div>
+  </section>
+
+  </div><!-- /deck -->
+
+  <div id="tal"></div>
+  <nav class="nav">
+    <button id="prev" title="Föregående (vänsterpil)">◀ Tillbaka</button>
+    <button id="next" title="Nästa (högerpil eller mellanslag)">Nästa ▶</button>
+  </nav>
+
+</div><!-- /stage -->
+
+<!-- ============ FIGURMALL ============ -->
+<template id="figurmall">
+<svg viewBox="0 0 600 370" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif">
+  <!-- mark: skrafferingen ritas som explicita streck, inga id-beroenden -->
+  <g stroke="#9a978f" stroke-width="1.1">
+    <line x1="12" y1="349" x2="25" y2="336"/><line x1="30" y1="349" x2="43" y2="336"/>
+    <line x1="48" y1="349" x2="61" y2="336"/><line x1="66" y1="349" x2="79" y2="336"/>
+    <line x1="84" y1="349" x2="97" y2="336"/><line x1="102" y1="349" x2="115" y2="336"/>
+    <line x1="120" y1="349" x2="133" y2="336"/><line x1="138" y1="349" x2="151" y2="336"/>
+    <line x1="156" y1="349" x2="169" y2="336"/><line x1="174" y1="349" x2="187" y2="336"/>
+    <line x1="192" y1="349" x2="205" y2="336"/><line x1="210" y1="349" x2="223" y2="336"/>
+    <line x1="228" y1="349" x2="241" y2="336"/><line x1="246" y1="349" x2="259" y2="336"/>
+    <line x1="264" y1="349" x2="277" y2="336"/><line x1="282" y1="349" x2="295" y2="336"/>
+    <line x1="300" y1="349" x2="313" y2="336"/><line x1="318" y1="349" x2="331" y2="336"/>
+    <line x1="336" y1="349" x2="349" y2="336"/><line x1="354" y1="349" x2="367" y2="336"/>
+    <line x1="372" y1="349" x2="385" y2="336"/><line x1="390" y1="349" x2="403" y2="336"/>
+    <line x1="408" y1="349" x2="421" y2="336"/><line x1="426" y1="349" x2="439" y2="336"/>
+    <line x1="444" y1="349" x2="457" y2="336"/><line x1="462" y1="349" x2="475" y2="336"/>
+    <line x1="480" y1="349" x2="493" y2="336"/><line x1="498" y1="349" x2="511" y2="336"/>
+    <line x1="516" y1="349" x2="529" y2="336"/><line x1="534" y1="349" x2="547" y2="336"/>
+  </g>
+  <line x1="12" y1="336" x2="552" y2="336" stroke="#4a4a46" stroke-width="1.6"/>
+
+  <!-- planet -->
+  <line x1="512.8" y1="82.5" x2="512.8" y2="336" stroke="#b0aea6" stroke-width="1.2"/>
+  <line x1="36" y1="336" x2="512.8" y2="82.5" stroke="#2b2b28" stroke-width="2.4"/>
+
+  <!-- lutningsvinkeln -->
+  <path d="M 86 336 A 50 50 0 0 0 80.15 312.53" fill="none" stroke="#2b2b28" stroke-width="1.4"/>
+  <text x="100" y="326" font-size="19" font-style="italic">φ</text>
+
+  <!-- ladan -->
+  <polygon points="327.37,181.07 412.14,136.00 382.56,80.38 297.80,125.45"
+           fill="#e8e6de" stroke="#2b2b28" stroke-width="1.8"/>
+  <circle cx="354.97" cy="130.73" r="3.1" fill="#1d1d1b"/>
+
+  <!-- ===== lager: tyngdkraft ===== -->
+  <g class="lager l-fg">
+    <line x1="354.97" y1="130.73" x2="354.97" y2="299.93" stroke="#c81e28" stroke-width="2.6"/>
+    <polygon points="354.97,310.73 349.77,295.73 360.17,295.73" fill="#c81e28"/>
+    <text x="341" y="300" font-size="19" fill="#c81e28" text-anchor="end" font-style="italic">F<tspan font-size="13" dy="4" font-style="normal">g</tspan></text>
+  </g>
+
+  <!-- ===== lager: komposanter ===== -->
+  <g class="lager l-komp">
+    <line x1="280.35" y1="170.40" x2="354.97" y2="310.73" stroke="#a9a69c" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="429.58" y1="271.05" x2="354.97" y2="310.73" stroke="#a9a69c" stroke-width="1" stroke-dasharray="3 3"/>
+
+    <line x1="354.97" y1="130.73" x2="289.89" y2="165.33" stroke="#c81e28" stroke-width="2.2" stroke-dasharray="7 5"/>
+    <polygon points="280.35,170.40 291.15,158.77 296.04,167.95" fill="#c81e28"/>
+    <text x="274" y="158" font-size="17" fill="#c81e28" text-anchor="end" font-style="italic">F<tspan font-size="12" dy="4" font-style="normal">g∥</tspan></text>
+
+    <line x1="354.97" y1="130.73" x2="424.51" y2="261.51" stroke="#c81e28" stroke-width="2.2" stroke-dasharray="7 5"/>
+    <polygon points="429.58,271.05 417.95,260.25 427.13,255.36" fill="#c81e28"/>
+    <text x="440" y="278" font-size="17" fill="#c81e28" font-style="italic">F<tspan font-size="12" dy="4" font-style="normal">g⊥</tspan></text>
+
+    <path d="M 354.97 168.73 A 38 38 0 0 0 372.81 164.28" fill="none" stroke="#4a4a46" stroke-width="1.2"/>
+    <text x="366" y="192" font-size="17" font-style="italic">φ</text>
+  </g>
+
+  <!-- ===== lager: normalkraft ===== -->
+  <g class="lager l-norm">
+    <line x1="369.75" y1="158.54" x2="300.18" y2="27.69" stroke="#145ab4" stroke-width="2.6"/>
+    <polygon points="295.11,18.15 306.74,28.95 297.56,33.84" fill="#145ab4"/>
+    <text x="292" y="40" font-size="19" fill="#145ab4" text-anchor="end" font-style="italic">F<tspan font-size="13" dy="4" font-style="normal">N</tspan></text>
+  </g>
+
+  <!-- ===== lager: friktion + rorelseriktning ===== -->
+  <g class="lager l-frik">
+    <line x1="369.75" y1="158.54" x2="434.91" y2="123.89" stroke="#148246" stroke-width="2.6"/>
+    <polygon points="444.45,118.82 433.65,130.45 428.76,121.27" fill="#148246"/>
+    <text x="452" y="126" font-size="19" fill="#148246" font-style="italic">F<tspan font-size="13" dy="4" font-style="normal">μ</tspan></text>
+
+    <line x1="196.74" y1="216.56" x2="135.50" y2="249.12" stroke="#8d8b84" stroke-width="2"/>
+    <polygon points="127.87,253.18 136.49,243.84 140.44,251.25" fill="#8d8b84"/>
+    <text x="172" y="220" font-size="17" fill="#8d8b84" font-style="italic">v</text>
+  </g>
+</svg>
+</template>
+
+<script>
+(function(){
+  const stage  = document.getElementById('stage');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const rail   = document.getElementById('rail');
+  const mall   = document.getElementById('figurmall');
+  const bNext  = document.getElementById('next');
+  const bPrev  = document.getElementById('prev');
+  const tal    = document.getElementById('tal');
+
+  /* --- figurer in i sina platser, med rätt lager påslagna --- */
+  slides.forEach(sl=>{
+    const plats = sl.querySelector('.figurplats');
+    if(!plats) return;
+    const svg = mall.content.cloneNode(true).querySelector('svg');
+    (sl.dataset.lager||'').split(/\s+/).filter(Boolean)
+      .forEach(l=>svg.classList.add('v-'+l));
+    plats.appendChild(svg);
+  });
+
+  /* --- progressionsvisare --- */
+  const steg = [];
+  slides.forEach((sl,i)=>{
+    const s = sl.dataset.step;
+    let rad = steg.find(r=>r.step===s);
+    if(!rad){ rad={step:s, index:[]}; steg.push(rad); }
+    rad.index.push(i);
+  });
+
+  steg.forEach(rad=>{
+    const div = document.createElement('div');
+    div.className = 'railrow';
+    div.dataset.step = rad.step;
+    const num = document.createElement('div');
+    num.className = 'railnum';
+    num.textContent = rad.step==='0' ? '·' : (rad.step==='7' ? '✓' : rad.step);
+    div.appendChild(num);
+    const dots = document.createElement('div');
+    dots.className = 'raildots';
+    rad.index.forEach(i=>{
+      const d = document.createElement('div');
+      d.className = 'dot';
+      d.dataset.i = i;
+      d.title = 'Gå till sida ' + (i+1);
+      d.addEventListener('click',()=>visa(i));
+      d.style.cursor = 'pointer';
+      dots.appendChild(d);
+    });
+    div.appendChild(dots);
+    rail.appendChild(div);
+  });
+
+  const label = document.createElement('div');
+  label.className = 'raillabel';
+  label.textContent = 'steg';
+  rail.appendChild(label);
+
+  /* --- visning --- */
+  let n = 0;
+
+  function visa(i){
+    n = Math.max(0, Math.min(slides.length-1, i));
+    slides.forEach((sl,k)=>sl.classList.toggle('on', k===n));
+
+    rail.querySelectorAll('.dot').forEach(d=>{
+      const k = +d.dataset.i;
+      d.classList.toggle('now',  k===n);
+      d.classList.toggle('done', k<n);
+    });
+    rail.querySelectorAll('.railrow').forEach(r=>{
+      r.classList.toggle('active', r.dataset.step===slides[n].dataset.step);
+    });
+
+    bPrev.disabled = (n===0);
+    bNext.textContent = (slides[n].dataset.nav || 'Nästa') + ' ▶';
+    tal.textContent = 'Sida ' + (n+1) + ' av ' + slides.length;
+  }
+
+  bNext.addEventListener('click',()=> visa(n===slides.length-1 ? 0 : n+1));
+  bPrev.addEventListener('click',()=> visa(n-1));
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){ e.preventDefault(); bNext.click(); }
+    if(e.key==='ArrowLeft' ||e.key==='PageUp'){ e.preventDefault(); if(n>0) visa(n-1); }
+    if(e.key==='Home') visa(0);
+    if(e.key==='End')  visa(slides.length-1);
+  });
+
+  /* --- skala scenen så att den alltid får plats, aldrig scrollning --- */
+  function passa(){
+    const s = Math.min(window.innerWidth/1600, window.innerHeight/900);
+    stage.style.transform = 'scale(' + s + ')';
+    stage.style.margin = (900*s - 900)/2 + 'px ' + (1600*s - 1600)/2 + 'px';
+  }
+  window.addEventListener('resize', passa);
+
+  passa();
+  visa(0);
+})();
+</script>
+</body>
+</html>
