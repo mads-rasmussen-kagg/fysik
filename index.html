@@ -163,6 +163,11 @@ const omraden = [
       lank.className = "kort";
       lank.href = sida.fil;
 
+       if (/^https?:\/\//i.test(sida.fil)) {
+        lank.target = "_blank";
+        lank.rel = "noopener";
+         }
+
       const titel = document.createElement("div");
       titel.className = "titel";
       titel.textContent = sida.titel;
