@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Från cirkel till sinuskurva</title>
+<!--
+  Från cirkel till sinuskurva
+  Fristående demo, matematik 4, första lektionen kring sinuskurvor.
+
+  IDÉN: en punkt går runt enhetscirkeln. Det enda vi följer är dess höjd över
+  mitten. Vrider man cirkeln runt en lodrät axel krymper bredden som cos(alfa)
+  medan höjden står orörd kvar. Vid alfa = 90 grader återstår bara en lodrät
+  sträcka med en guppande punkt. Rörelsen har inte ändrats, bara vår vy.
+  Drar man sedan ut vinkelaxeln åt höger lämnar höjden ett spår: sinuskurvan.
+
+  FÄRGLOGIK: rött = höjden, alltså sinusvärdet (höjdsträckan, spårlinjen, pennan
+  och kurvan är samma färg för att de är samma sak). Blått = vinkeln (sektorn i
+  cirkeln och den vågräta axelns gradtal).
+
+  FÖRBEREDD FÖR COSINUS: objektet KOORD håller hojd() och bredd(). Byter man
+  S.koord till 'cos' följs punktens x-koordinat i stället. Observera att ett
+  ärligt cosinusläge också kräver att vinkeln mäts från den lodräta axeln,
+  eller att hela bilden vrids ett kvarts varv. Det är den enda kvarvarande
+  biten och den är medvetet inte gjord här.
+
+  KONVENTIONER: en fil, inga beroenden, vanilla JS i IIFE, canvas med
+  devicePixelRatio-skalning, CSS-variabler för färg, ljust/mörkt via
+  prefers-color-scheme, inga tangentbordsgenvägar (chromebooks och telefoner),
+  klick i stället för pointerdown, och total höjd som designparameter eftersom
+  demon kan bäddas in i en annan sida.
+-->
+<style>
+  :root{
+    --bg:#fbf7f0; --panel:#fffdf9; --text:#2c2521; --svag:#8b7f72;
+    --linje:#c3b4a0; --axel:#9c8f80; --ruta:#e6dccd;
+    --hojd:#c2503a; --hojd-svag:#c2503a55;
+    --vinkel:#2f6d86; --fyll:#8b7f7212; --vinkelfyll:#2f6d861f;
+    --knapp:#efe6d8; --knapp-kant:#d8c9b4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#1a1714; --panel:#221e1a; --text:#f0e7db; --svag:#a2948444;
+      --svag:#9d9083; --linje:#5f5548; --axel:#7a6e60; --ruta:#332c25;
+      --hojd:#e8775c; --hojd-svag:#e8775c55;
+      --vinkel:#6fb2ca; --fyll:#ffffff0d; --vinkelfyll:#6fb2ca22;
+      --knapp:#2e2822; --knapp-kant:#463d33;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  main{max-width:1060px; margin:0 auto; padding:16px 16px 28px}
+  h1{font-size:1.25rem; font-weight:600; margin:0 0 12px; letter-spacing:.01em}
+  canvas{
+    display:block; width:100%; aspect-ratio:2.25/1;
+    background:var(--panel); border:1px solid var(--ruta); border-radius:10px;
+    touch-action:manipulation;
+  }
+  .avlas{
+    display:flex; gap:22px; flex-wrap:wrap; align-items:baseline;
+    margin:12px 2px 14px; font-variant-numeric:tabular-nums;
+  }
+  .avlas span{font-size:1.05rem}
+  .avlas b{font-weight:600}
+  .vinkelfarg{color:var(--vinkel)}
+  .hojdfarg{color:var(--hojd)}
+  .reglage{display:flex; gap:22px; flex-wrap:wrap; margin-bottom:14px}
+  .skjut{flex:1 1 260px; min-width:220px}
+  .skjut label{display:block; font-size:.9rem; color:var(--svag); margin-bottom:2px}
+  .skjut input{width:100%; accent-color:var(--vinkel); touch-action:manipulation}
+  .andar{display:flex; justify-content:space-between; font-size:.78rem; color:var(--svag)}
+  .knappar{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  button{
+    font:inherit; font-size:.95rem; color:var(--text);
+    background:var(--knapp); border:1px solid var(--knapp-kant);
+    border-radius:8px; padding:7px 14px; cursor:pointer;
+    touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+  }
+  button:hover{border-color:var(--axel)}
+  button.pa{background:var(--vinkel); border-color:var(--vinkel); color:#fff}
+  .txt{max-width:62ch; color:var(--text); margin:18px 0 0}
+  .txt + .txt{margin-top:10px}
+  .txt em{font-style:normal; color:var(--svag)}
+  @media (max-width:720px){
+    /* Scenen är bredbunden på smala skärmar: extra höjd blir bara tom yta */
+    canvas{aspect-ratio:2.05/1}
+    main{padding:12px 12px 22px}
+    .reglage{gap:12px}
+    .avlas{gap:14px; margin:10px 2px 12px}
+    button{padding:8px 12px}
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Från cirkel till sinuskurva</h1>
+
+  <canvas id="scen"></canvas>
+
+  <div class="avlas">
+    <span class="vinkelfarg">vinkel <b id="ut-v">0°</b></span>
+    <span class="hojdfarg">höjd <b id="ut-h">sin 0° = 0,00</b></span>
+  </div>
+
+  <div class="reglage">
+    <div class="skjut">
+      <label for="r-vrid">Vrid cirkeln</label>
+      <input id="r-vrid" type="range" min="0" max="90" step="0.5" value="0">
+      <div class="andar"><span>framifrån</span><span>från kanten</span></div>
+    </div>
+    <div class="skjut">
+      <label for="r-ut">Dra ut vinkelaxeln</label>
+      <input id="r-ut" type="range" min="0" max="1" step="0.005" value="0">
+      <div class="andar"><span>ihop</span><span>utdragen</span></div>
+    </div>
+  </div>
+
+  <div class="knappar">
+    <button id="k-spela">Pausa</button>
+    <button id="k-bak">◀ 15°</button>
+    <button id="k-fram">15° ▶</button>
+    <button id="k-om">Börja om</button>
+    <button id="k-enhet">Visa radianer</button>
+  </div>
+
+  <p class="txt">Punkten går runt enhetscirkeln med jämn fart. Det enda vi följer är hur högt över mitten den befinner sig, den röda sträckan. Vrid cirkeln så krymper bredden bort medan höjden står kvar orörd: till slut finns bara en punkt som guppar upp och ner.</p>
+  <p class="txt">Dra sedan ut vinkelaxeln. Då lämnar höjden ett spår efter sig, ett spår för varje vinkel. <em>Rött är höjden, alltså sinusvärdet. Blått är vinkeln.</em></p>
+
+<script>
+(function(){
+  'use strict';
+
+  var cv = document.getElementById('scen');
+  var ctx = cv.getContext('2d');
+  var id = function(s){ return document.getElementById(s); };
+
+  // Punktens två koordinater. hojd() är den vi läser av och ritar lodrätt,
+  // bredd() är den som förkortas när vi vrider. Se huvudkommentaren om cosinus.
+  var KOORD = {
+    sin:{ namn:'sin', hojd:function(g){ return Math.sin(g*Math.PI/180); },
+                      bredd:function(g){ return Math.cos(g*Math.PI/180); } },
+    cos:{ namn:'cos', hojd:function(g){ return Math.cos(g*Math.PI/180); },
+                      bredd:function(g){ return Math.sin(g*Math.PI/180); } }
+  };
+
+  var S = { v:0, varv:0, spelar:true, vrid:0, ut:0, radianer:false, koord:'sin' };
+  var PERIOD = 9000;   // ms per varv
+  var L = { w:0, h:0 };
+  var F = {};
+
+  /* ---------- färg och storlek ---------- */
+
+  function lasFarger(){
+    var s = getComputedStyle(document.documentElement);
+    ['bg','panel','text','svag','linje','axel','ruta','hojd','vinkel','fyll','vinkelfyll'].forEach(function(n){
+      F[n] = s.getPropertyValue('--'+n).trim();
+    });
+  }
+
+  function storlek(){
+    var r = cv.getBoundingClientRect();
+    if(!r.width) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    cv.width  = Math.round(r.width  * dpr);
+    cv.height = Math.round(r.height * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    L.w = r.width; L.h = r.height;
+  }
+
+  /* ---------- små ritverktyg ---------- */
+
+  function linje(x1,y1,x2,y2,farg,bredd,dash){
+    ctx.save();
+    ctx.strokeStyle = farg; ctx.lineWidth = bredd || 1;
+    ctx.setLineDash(dash || []);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    ctx.restore();
+  }
+
+  var TYPSNITT = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+
+  function text(str,x,y,farg,px,alig,base,fet){
+    ctx.save();
+    ctx.fillStyle = farg;
+    ctx.font = (fet?'600 ':'')+px+'px '+TYPSNITT;
+    ctx.textAlign = alig || 'center';
+    ctx.textBaseline = base || 'middle';
+    ctx.fillText(str,x,y);
+    ctx.restore();
+  }
+
+  // Etiketter ritas sist, med en lucka i papperfärg bakom sig, så att kurvan,
+  // spårlinjen och rutnätet aldrig kan gå tvärs genom en siffra.
+  function etikett(str,x,y,farg,px,alig,base,fet){
+    ctx.save();
+    ctx.font = (fet?'600 ':'')+px+'px '+TYPSNITT;
+    var w = ctx.measureText(str).width, h = px;
+    var xv = (alig === 'right') ? x-w : (alig === 'left' ? x : x-w/2);
+    var yo = (base === 'top') ? y : y-h/2;
+    ctx.fillStyle = F.panel;
+    ctx.fillRect(xv-3, yo-2, w+6, h+4);
+    ctx.restore();
+    text(str,x,y,farg,px,alig,base,fet);
+  }
+
+  function tal(x,d){
+    return x.toFixed(d).replace('.',',').replace('-','−');
+  }
+
+  // pi-form för vinklar som är hela multiplar av 15 grader, annars null
+  function piForm(g){
+    var k = Math.round(g/15);
+    if(Math.abs(g - k*15) > 0.01) return null;
+    if(k === 0) return '0';
+    var n = k, d = 12, a = n, b = d;
+    while(b){ var t = a % b; a = b; b = t; }
+    n /= a; d /= a;
+    var taljare = (n === 1) ? 'π' : n+'π';
+    return (d === 1) ? taljare : taljare+'/'+d;
+  }
+
+  function vinkelText(g){
+    if(!S.radianer) return tal(g,0)+'°';
+    var p = piForm(g);
+    return p !== null ? p : tal(g*Math.PI/180,2)+' rad';
+  }
+
+  /* ---------- layouten ---------- */
+
+  function layout(){
+    var W = L.w, H = L.h;
+    // Scenen är 2,4 R hög och minst 5,6 R bred. På smala skärmar är bredden
+    // det som binder, och då centreras innehållet lodrätt i stället.
+    var R  = Math.min(H/2.55, W/5.6);
+    var cy = (H - 2.55*R)/2 + 1.20*R;
+    var Wg = W - 3.05*R;                       // grafens fulla bredd
+    var cx = 1.35*R + (1-S.ut)*Wg/2;           // cirkeln glider vänsterut
+    return { R:R, cx:cx, cy:cy, x0:cx + 1.45*R, Wg:Wg, bredd:S.ut*Wg };
+  }
+
+  /* ---------- ritningen ---------- */
+
+  function rita(){
+    var K = KOORD[S.koord];
+    var G = layout();
+    var R = G.R, cx = G.cx, cy = G.cy;
+    var c = Math.cos(S.vrid*Math.PI/180);      // hopkrympningen i sidled
+    var vm = S.v;
+    var i, g, x;
+
+    ctx.clearRect(0,0,L.w,L.h);
+
+    var px = cx + R*K.bredd(vm)*c;
+    var py = cy - R*K.hojd(vm);
+
+    var harGraf  = G.bredd > 4;
+    var gx = function(v){ return G.x0 + (v/360)*G.bredd; };
+    var perGrad  = G.bredd/360;
+    var storSteg = (perGrad*90 < 64) ? 180 : 90;   // gradtalen ska aldrig tränga ihop sig
+    var visaTal  = R > 78 && G.bredd > 60;
+    var pxTal    = Math.max(10, Math.round(R*0.11));
+    var pxGrad   = Math.max(11, Math.round(R*0.115));
+    var pxEtt    = Math.max(11, Math.round(R*0.12));
+
+    /* --- grafen: rutnät, axlar och streck --- */
+    if(harGraf){
+      [1,0.5,-0.5,-1].forEach(function(y){
+        linje(G.x0, cy - y*R, G.x0+G.bredd, cy - y*R, F.ruta, 1, [3,4]);
+      });
+      for(g = storSteg; g <= 360; g += storSteg){            // lodrätt rutnät
+        linje(gx(g), cy-R, gx(g), cy+R, F.ruta, 1, [3,4]);
+      }
+      linje(G.x0, cy-R, G.x0, cy+R, F.axel, 1.2);            // lodrät axel
+      linje(G.x0, cy, G.x0+G.bredd, cy, F.axel, 1.2);        // vinkelaxeln
+      for(g = 30; g <= 360; g += 30){
+        x = gx(g);
+        var stor = (g % storSteg === 0);
+        linje(x, cy - (stor?6:3), x, cy + (stor?6:3), F.axel, 1);
+      }
+
+      // kurvan: färdiga varv blekt, pågående varv fullt
+      var ritaBit = function(fran,till,alpha,bredd){
+        if(till <= fran) return;
+        ctx.save();
+        ctx.globalAlpha = alpha; ctx.strokeStyle = F.hojd; ctx.lineWidth = bredd;
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.beginPath();
+        var steg = Math.max(2, Math.ceil((till-fran)/1.5));
+        for(var j=0;j<=steg;j++){
+          var gg = fran + (till-fran)*j/steg;
+          var X = gx(gg), Y = cy - R*K.hojd(gg);
+          if(j===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+        }
+        ctx.stroke(); ctx.restore();
+      };
+      if(S.varv >= 1) ritaBit(0,360,0.28,Math.max(1.6,R*0.02));
+      ritaBit(0,vm,1,Math.max(2,R*0.025));
+    }
+
+    /* --- cirkeln --- */
+    if(c > 0.02){                              // vågrät axel, tonar bort
+      ctx.save(); ctx.globalAlpha = Math.max(0,Math.min(1,c*1.4));
+      linje(cx - 1.28*R*c, cy, cx + 1.28*R*c, cy, F.axel, 1.2);
+      ctx.restore();
+    }
+    linje(cx, cy - 1.22*R, cx, cy + 1.22*R, F.axel, 1.2);    // lodrät axel
+
+    ctx.save();                                // skivan smalnar till en sträcka
+    ctx.beginPath(); ctx.ellipse(cx, cy, Math.max(R*c,0.01), R, 0, 0, Math.PI*2);
+    ctx.fillStyle = F.fyll; ctx.fill();
+    ctx.strokeStyle = F.linje; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+
+    // vinkelsektorn: fylld, annars läses ett stort varv som en sluten ögla
+    var aA = Math.max(0, Math.min(1, (c-0.10)/0.35));
+    var ar = R*0.32, mv = vm/2*Math.PI/180;
+    if(aA > 0.01 && S.koord === 'sin'){
+      ctx.save(); ctx.globalAlpha = aA;
+      ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.ellipse(cx, cy, ar*c, ar, 0, 0, -vm*Math.PI/180, true);
+      ctx.closePath();
+      ctx.fillStyle = F.vinkelfyll; ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, ar*c, ar, 0, 0, -vm*Math.PI/180, true);
+      ctx.strokeStyle = F.vinkel; ctx.lineWidth = 1.8; ctx.stroke();
+      ctx.restore();
+    }
+
+    linje(cx, cy, px, py, F.axel, 1.4);                      // radien
+    linje(px, cy, px, py, F.hojd, Math.max(2.5, R*0.032));   // höjden
+    if(harGraf) linje(px, py, gx(vm), py, F.hojd, 1.2, [4,4]);
+
+    ctx.save();                                              // punkten
+    ctx.beginPath(); ctx.arc(px, py, Math.max(5, R*0.055), 0, Math.PI*2);
+    ctx.fillStyle = F.panel; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, Math.max(4, R*0.045), 0, Math.PI*2);
+    ctx.fillStyle = F.hojd; ctx.fill();
+    ctx.restore();
+
+    if(harGraf){                                             // pennan
+      ctx.save();
+      ctx.beginPath(); ctx.arc(gx(vm), py, Math.max(3.5, R*0.038), 0, Math.PI*2);
+      ctx.fillStyle = F.hojd; ctx.fill();
+      ctx.restore();
+    }
+
+    /* --- etiketterna allra sist --- */
+    text('1',  cx - R*0.10, cy - R, F.svag, pxEtt, 'right');
+    text('−1', cx - R*0.10, cy + R, F.svag, pxEtt, 'right');
+    if(aA > 0.01 && S.koord === 'sin'){
+      ctx.save(); ctx.globalAlpha = aA;
+      text('v', cx + ar*1.5*Math.cos(mv)*c, cy - ar*1.5*Math.sin(mv),
+           F.vinkel, Math.max(13, Math.round(R*0.145)), 'center', 'middle', true);
+      ctx.restore();
+    }
+    if(harGraf){
+      // spårlinjen korsar värdena vid grafens vänsterkant, därför lucka bakom dem
+      if(visaTal){
+        [1,0.5,-0.5,-1].forEach(function(y){
+          etikett(tal(y,1).replace(',0',''), G.x0-7, cy - y*R, F.svag, pxTal, 'right');
+        });
+      }
+      // gradtalen står under hela grafen, inte intill axeln, så att kurvan
+      // aldrig behöver brytas där den korsar noll
+      if(perGrad*storSteg > 34){
+        for(g = storSteg; g <= 360; g += storSteg){
+          text(vinkelText(g), gx(g), cy + R*1.09, F.vinkel, pxGrad, 'center', 'top');
+        }
+      }
+    }
+  }
+
+  /* ---------- avläsningen ---------- */
+
+  function visaVarden(){
+    var K = KOORD[S.koord];
+    id('ut-v').textContent = vinkelText(S.v);
+    id('ut-h').textContent = K.namn+' '+vinkelText(S.v)+' = '+tal(K.hojd(S.v),2);
+  }
+
+  /* ---------- gången ---------- */
+
+  var sist = null;
+  function bildruta(nu){
+    if(sist === null) sist = nu;
+    var dt = Math.min(nu - sist, 100); sist = nu;
+    if(S.spelar){
+      S.v += 360*dt/PERIOD;
+      while(S.v >= 360){ S.v -= 360; S.varv++; }
+      visaVarden();
+    }
+    rita();
+    requestAnimationFrame(bildruta);
+  }
+
+  function stega(riktning){
+    satt(false);
+    var k = Math.round(S.v/15) + riktning;
+    S.v = k*15;
+    while(S.v >= 360){ S.v -= 360; S.varv++; }
+    while(S.v < 0){ S.v += 360; if(S.varv > 0) S.varv--; }
+    visaVarden();
+  }
+
+  function satt(spelar){
+    S.spelar = spelar;
+    id('k-spela').textContent = spelar ? 'Pausa' : 'Spela';
+    id('k-spela').classList.toggle('pa', !spelar);
+  }
+
+  /* ---------- koppling ---------- */
+
+  id('r-vrid').addEventListener('input', function(){ S.vrid = +this.value; });
+  id('r-ut').addEventListener('input',   function(){ S.ut   = +this.value; });
+  id('k-spela').addEventListener('click', function(){ satt(!S.spelar); });
+  id('k-bak').addEventListener('click',  function(){ stega(-1); });
+  id('k-fram').addEventListener('click', function(){ stega(1); });
+  id('k-om').addEventListener('click', function(){
+    S.v = 0; S.varv = 0; visaVarden();
+  });
+  id('k-enhet').addEventListener('click', function(){
+    S.radianer = !S.radianer;
+    this.textContent = S.radianer ? 'Visa grader' : 'Visa radianer';
+    this.classList.toggle('pa', S.radianer);
+    visaVarden();
+  });
+
+  window.addEventListener('resize', storlek);
+  if(window.ResizeObserver) new ResizeObserver(storlek).observe(cv);
+  if(window.matchMedia){
+    var mm = window.matchMedia('(prefers-color-scheme: dark)');
+    if(mm.addEventListener) mm.addEventListener('change', lasFarger);
+  }
+
+  lasFarger();
+  storlek();
+  visaVarden();
+  requestAnimationFrame(bildruta);
+})();
+</script>
+</main>
+</body>
+</html>
