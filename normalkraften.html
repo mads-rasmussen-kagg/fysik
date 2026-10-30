@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normalkraften</title>
+<style>
+:root{
+  --rod:#c81e28; --bla:#145ab4; --gron:#148246; --lila:#8a4fc4;
+  --ram:#5a8c3c; --papper:#fbfaf6; --blackish:#1d1d1b; --gra:#6b6b66;
+  --ljusgra:#eceae2;
+  --matt:880px;                 /* gemensam satsbredd, i px och aldrig i ch */
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#dcdad2}
+body{display:flex;align-items:center;justify-content:center;
+  font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--blackish);
+  -webkit-font-smoothing:antialiased}
+#stage{width:1600px;height:900px;flex:none;transform-origin:center center;
+  background:var(--papper);box-shadow:0 10px 40px rgba(0,0,0,.25);
+  display:grid;grid-template-columns:150px 1fr;overflow:hidden;position:relative}
+
+#rail{background:#f4f2ea;border-right:1px solid #e0ddd2;padding:44px 0;
+  display:flex;flex-direction:column;align-items:center;gap:18px}
+.railrow{display:flex;flex-direction:column;align-items:center;gap:7px}
+.railnum{font-size:15px;letter-spacing:.09em;color:#9b9a92;font-weight:700}
+.railrow.active .railnum{color:var(--ram)}
+.raildots{display:flex;flex-direction:column;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;border:1.7px solid #c9c6ba;
+  background:transparent;cursor:pointer;transition:background .18s,border-color .18s}
+.dot.done{background:#c9c6ba}
+.dot.now{background:var(--ram);border-color:var(--ram);transform:scale(1.28)}
+.raillabel{writing-mode:vertical-rl;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:#a8a69c;margin-top:6px}
+
+#deck{position:relative;overflow:hidden}
+.slide{position:absolute;inset:0;padding:58px 74px 108px 62px;display:none}
+.slide.on{display:flex;flex-direction:column}
+.slide.tva.on{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+.slide.tva.hoger .figurplats{order:2}
+.textkol{display:flex;flex-direction:column;justify-content:center}
+
+h1{font-size:64px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+h2{font-size:20px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ram)}
+h3{font-size:40px;font-weight:700;letter-spacing:-.01em;line-height:1.15;margin-top:4px}
+.rubrik{margin-bottom:30px}
+.rubrik .strecket{height:3px;background:var(--ram);margin-top:16px}
+.rubrik.svar .strecket{background:#cfcdc2;height:2px}
+.rubrik.svar h2{color:#a3a199}
+
+p{font-size:25px;line-height:1.5;margin-bottom:19px;max-width:var(--matt)}
+p.liten{font-size:21px;line-height:1.5;color:#4a4a46}
+ul{margin:0 0 19px 26px;font-size:25px;line-height:1.5;max-width:var(--matt)}
+li{margin-bottom:9px}
+ul.delar{list-style:none;margin-left:0}
+.slide.tva .harled{margin-bottom:18px}
+.del{font-weight:700}
+
+.m{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:1.03em}
+.m .up{font-style:normal}
+.m sub{font-style:normal;font-size:.68em;vertical-align:-.22em}
+.blockm{font-family:Georgia,"Times New Roman",serif;font-style:italic;font-size:34px;
+  text-align:center;margin:20px 0 24px;max-width:var(--matt)}
+.blockm .up{font-style:normal}
+.blockm sub{font-style:normal;font-size:.65em;vertical-align:-.22em}
+
+.ruta{display:inline-block;border:2px solid var(--blackish);padding:11px 24px;border-radius:3px;background:#fff}
+.slutruta{display:inline-block;border:3px solid var(--ram);background:#f2f5ec;
+  padding:20px 46px;border-radius:5px;font-size:44px}
+.gron{background:var(--ljusgra);border-left:5px solid var(--ram);padding:20px 26px;
+  margin:6px 0 24px;max-width:var(--matt)}
+.gron p{margin-bottom:0;font-size:25px}
+.mitt{max-width:var(--matt);text-align:center}
+.ledtrad{margin-top:auto;font-size:21px;line-height:1.5;color:#5c5b55;
+  border-top:1px solid #dedbd0;padding-top:18px;max-width:var(--matt)}
+.ledtrad i{font-style:italic;color:#3f3e3a}
+.ledtrad div+div{margin-top:9px}
+
+.figurplats{display:flex;align-items:center;justify-content:center}
+.figurplats svg{width:100%;height:auto;max-height:660px}
+/* begreppsruta: knappen ligger overst i figurspalten och rutan falls ut over figuren */
+.figurplats{position:relative}
+.begrepp{position:absolute;top:36px;left:0;right:0;z-index:5;text-align:center}
+.begrepp summary{display:inline-block;cursor:pointer;list-style:none;font-size:20px;
+  color:var(--ram);font-weight:600;padding:4px 2px;
+  text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:5px;
+  text-decoration-color:rgba(90,140,60,.45)}
+.begrepp summary::-webkit-details-marker{display:none}
+.begrepp summary::after{content:"";display:inline-block;width:8px;height:8px;margin-left:10px;
+  border-right:2px solid currentColor;border-bottom:2px solid currentColor;
+  transform:translateY(-3px) rotate(45deg);transition:transform .15s}
+.begrepp[open] summary::after{transform:translateY(1px) rotate(-135deg)}
+.begrepp summary:hover{text-decoration-color:var(--ram)}
+.begrepp summary:focus{outline:none}
+.begrepp summary:focus-visible{outline:2px solid rgba(90,140,60,.5);outline-offset:4px;border-radius:2px}
+.begrepp[open] ~ svg{visibility:hidden}
+.begrepp .ruta-ut{margin-top:16px;text-align:left;background:#fff;
+  border-left:5px solid var(--ram);box-shadow:0 6px 24px rgba(0,0,0,.12);padding:22px 28px}
+.begrepp .ruta-ut p{font-size:21px;margin-bottom:10px}
+.begrepp .ruta-ut p.liten{font-size:18px;margin-bottom:0}
+.begrepp .ruta-ut svg{display:block;width:100%;height:auto;margin:4px 0 12px}
+
+/* sidor utan figur: kortare rader, cirka 60 tecken */
+.slide:not(.tva){--matt:720px}
+.slide.tva p{font-size:22px}
+.slide.tva p.liten{font-size:19px}
+.slide.tva .blockm{font-size:28px}
+
+table{border-collapse:collapse;font-size:22px;width:100%}
+th{text-align:left;font-weight:700;padding:9px 12px 9px 0;border-bottom:2px solid var(--blackish)}
+td{padding:9px 12px 9px 0;border-bottom:1px solid #ddd9cd}
+tr:last-child td{border-bottom:2px solid var(--blackish)}
+
+/* harledning: vanster- och hogerled centreras tillsammans som ett block, likhetstecknen
+   star under varandra, och en kommentar (.k) hamnar till hoger utan att paverka centreringen */
+.harled{font-family:Georgia,"Times New Roman",serif;font-size:31px;
+  display:grid;grid-template-columns:minmax(0,1fr) max-content max-content max-content minmax(0,1fr);gap:16px 20px;
+  align-items:baseline;margin:8px 0 6px;max-width:var(--matt)}
+.harled .v{grid-column:2;text-align:right;font-style:italic}
+.harled > div:not([class]){grid-column:3}
+.harled .h{grid-column:4;text-align:left;font-style:italic}
+.harled .k{grid-column:5;white-space:nowrap;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;
+  font-size:19px;color:var(--gra);padding-left:26px}
+.harled .up{font-style:normal}
+.harled sub{font-style:normal;font-size:.65em;vertical-align:-.22em}
+.brak{display:inline-block;vertical-align:-.62em;text-align:center;font-size:.86em}
+.brak .tal{display:block;padding:0 6px 3px}
+.brak .namn{display:block;padding:3px 6px 0;border-top:1.6px solid currentColor}
+.strykt{position:relative;display:inline-block}
+.strykt::after{content:"";position:absolute;left:-3px;right:-3px;top:52%;height:2px;
+  background:var(--rod);transform:rotate(-14deg)}
+
+.nav{position:absolute;right:64px;bottom:34px;display:flex;align-items:center;gap:14px}
+button{font-family:inherit;font-size:20px;cursor:pointer;border-radius:6px;
+  border:1.8px solid #c6c3b7;background:#fff;color:var(--blackish);padding:13px 20px;transition:.15s}
+button:hover:not(:disabled){border-color:var(--ram);color:var(--ram)}
+button:disabled{opacity:.3;cursor:default}
+#next{background:var(--ram);border-color:var(--ram);color:#fff;font-weight:700;padding:13px 30px}
+#next:hover{background:#4c7a31;border-color:#4c7a31;color:#fff}
+#tal{position:absolute;left:212px;bottom:44px;font-size:18px;color:#a8a69c;letter-spacing:.05em}
+
+/* figurstil, se avsnitt 4 */
+svg .kontur{fill:none;stroke:#1d1d1b;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+svg .vektor{fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+svg .hulling{fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+svg .prickad{fill:none;stroke:#1d1d1b;stroke-width:2;stroke-linecap:round;stroke-dasharray:0.01 5}
+svg .tunn{fill:none;stroke:#1d1d1b;stroke-width:1.1;stroke-linecap:round}
+svg .ljus{fill:#e8e6de;stroke:#1d1d1b;stroke-width:1.6}
+svg .vit{fill:#fff;stroke:#1d1d1b;stroke-width:1.6}
+svg .etikett{font-style:italic}
+svg .sub{font-style:normal;font-size:12px}
+
+/* lager: en rad per lager i figuren */
+svg .lager{display:none}
+svg.v-fg .l-fg,
+svg.v-fn0 .l-fn0,
+svg.v-hand .l-hand,
+svg.v-fn1 .l-fn1,
+svg.v-snore .l-snore,
+svg.v-fn2 .l-fn2,
+svg.v-drag .l-drag,
+svg.v-a .l-a,
+svg.v-fnh .l-fnh{display:inline}
+</style>
+</head>
+<body>
+<div id="stage">
+  <aside id="rail"></aside>
+  <div id="deck">
+
+    <!-- Sidor. Attribut:
+         data-step="3"        grupperar i progressionsvisaren, "0" forsattsblad, "9" sammanfattning
+         data-nav="..."       knapptexten, pa fragesidor "Visa svar steg 3"
+         data-figur="vanster" eller "hoger"; utelamnas pa fragesidor
+         data-lager="a b"     vilka lager som ar tanda
+         data-fig="huvud"     vilken figurmall, om det finns flera
+         Skriv bara textinnehallet, spalterna byggs av skriptet.          -->
+
+    <section data-step="0" data-nav="Börja">
+      <div class="rubrik"><h2>Undersökning</h2><h1>Normalkraften</h1><div class="strecket"></div></div>
+      <p>En låda med massan 6.0&nbsp;kg står på ett golv. Vi ska undersöka den kraft som golvet påverkar lådan med, och se vad som händer med den när vi trycker på lådan, drar i den och till sist åker hiss med den.</p>
+      <p>Varje steg är en fråga. Rita och räkna på ditt eget papper innan du klickar fram svaret.</p>
+      <p class="liten">Använd <span class="m">g</span> = 9.82&nbsp;m/s².</p>
+    </section>
+
+    <!-- STEG 1 -->
+    <section data-step="1" data-nav="Visa svar steg 1">
+      <div class="rubrik"><h2>Steg 1</h2><h3>Lådan står still</h3><div class="strecket"></div></div>
+      <p>Lådan står still på golvet. Jorden drar den nedåt hela tiden, ändå faller den inte igenom golvet. Det måste alltså finnas fler krafter på lådan än tyngdkraften.</p>
+      <ul class="delar">
+        <li><span class="del">a)</span> Rita lådan och alla krafter som verkar på den.</li>
+        <li><span class="del">b)</span> Hur stora är krafterna?</li>
+      </ul>
+      <div class="ledtrad"><div><i>Ledtråd:</i> Vad vet du om krafterna på något som står still?</div></div>
+    </section>
+
+    <section data-step="1" data-nav="Vidare till steg 2" data-figur="vanster" data-lager="fg fn0">
+      <div class="rubrik svar"><h2>Svar steg 1</h2><div class="strecket"></div></div>
+      <p>Jorden drar lådan nedåt med tyngdkraften <span class="m">F<sub>g</sub></span>, och golvet trycker den uppåt med normalkraften <span class="m">F<sub>N</sub></span>.</p>
+      <details class="begrepp"><summary>Vad betyder normalkraft?</summary>
+        <div class="ruta-ut">
+          <p>Normalkraften är den kraft som en yta trycker på ett föremål med, när föremålet står på ytan eller trycks mot den. Kraften pekar alltid vinkelrätt ut från ytan.</p>
+          <svg viewBox="0 18 380 152" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif" font-size="17"><line class="kontur" x1="10" y1="140" x2="160" y2="140"/><g class="tunn"><line x1="10" y1="150" x2="20" y2="140"/><line x1="30" y1="150" x2="40" y2="140"/><line x1="50" y1="150" x2="60" y2="140"/><line x1="70" y1="150" x2="80" y2="140"/><line x1="90" y1="150" x2="100" y2="140"/><line x1="110" y1="150" x2="120" y2="140"/><line x1="130" y1="150" x2="140" y2="140"/></g><rect class="vit" x="50" y="104" width="60" height="36"/><path class="tunn" d="M80 131 H89 V140"/><g stroke="#145ab4"><line class="vektor" x1="80" y1="140" x2="80" y2="58"/><path class="hulling" d="M86.5 67.5 L80 58 L73.5 67.5"/></g><text class="etikett" x="50" y="66" fill="#145ab4">F<tspan class="sub" dy="4">N</tspan></text><path class="kontur" d="M195 150 L370 62 L370 150 Z" fill="none"/><g transform="translate(282.5,106) rotate(-26.7)"><rect class="vit" x="-30" y="-30" width="60" height="30"/></g><path class="tunn" d="M278.5 98 L286.5 93.9 L290.5 102"/><g stroke="#145ab4"><line class="vektor" x1="282.5" y1="106" x2="245.7" y2="32.7"/><path class="hulling" d="M255.7 38.3 L245.7 32.7 L244.1 44.1"/></g><text class="etikett" x="215.7" y="42.7" fill="#145ab4">F<tspan class="sub" dy="4">N</tspan></text></svg>
+          <p class="liten">Normal är matematikens ord för vinkelrät, och det är därifrån kraften har fått sitt namn. På ett vågrätt golv pekar normalkraften rakt uppåt, och när ytan lutar, lutar också normalkraften lika mycket.</p>
+        </div>
+      </details>
+      <div class="harled">
+        <div class="v">F<sub>g</sub></div><div>=</div><div class="h">mg</div>
+        <div class="v"></div><div>=</div><div class="h">6.0 · 9.82</div>
+        <div class="v"></div><div>≈</div><div class="h">58.9 <span class="up">N</span></div>
+      </div>
+      <p>Lådan står still, så krafterna tar ut varandra och pilarna är lika långa.</p>
+      <div class="harled">
+        <div class="v">F<sub>N</sub></div><div>=</div><div class="h">F<sub>g</sub> = 58.9 <span class="up">N</span></div>
+      </div>
+      <div class="gron"><p>Hur kan ett golv trycka? Golvet ger efter en aning under lådan, som en madrass när du sätter dig på den, fast så lite att det inte syns. Det hoptryckta golvet trycker tillbaka, och ju mer det trycks ihop, desto hårdare trycker det.</p></div>
+    </section>
+
+    <!-- STEG 2 -->
+    <section data-step="2" data-nav="Visa svar steg 2">
+      <div class="rubrik"><h2>Steg 2</h2><h3>Du trycker på lådan</h3><div class="strecket"></div></div>
+      <p>Nu lägger du handen på lådans ovansida och trycker rakt nedåt med kraften 20.0&nbsp;N. Lådan står fortfarande still.</p>
+      <ul class="delar">
+        <li><span class="del">a)</span> Rita lådan och alla krafter som verkar på den.</li>
+        <li><span class="del">b)</span> Beräkna normalkraften.</li>
+      </ul>
+      <div class="ledtrad"><div><i>Ledtråd:</i> Lådan står still. Hur förhåller sig krafterna uppåt till krafterna nedåt?</div></div>
+    </section>
+
+    <section data-step="2" data-nav="Vidare till steg 3" data-figur="vanster" data-lager="fg hand fn1">
+      <div class="rubrik svar"><h2>Svar steg 2</h2><div class="strecket"></div></div>
+      <p>Nu verkar tre krafter på lådan. Utöver tyngdkraften trycker handen nedåt med <span class="m">F</span> = 20.0&nbsp;N.</p>
+      <p>Lådan står fortfarande still, så krafterna uppåt är lika stora som krafterna nedåt.</p>
+      <div class="harled">
+        <div class="v">F<sub>N</sub></div><div>=</div><div class="h">F<sub>g</sub> + F</div>
+        <div class="v"></div><div>=</div><div class="h">58.9 + 20.0</div>
+        <div class="v"></div><div>≈</div><div class="h">78.9 <span class="up">N</span></div>
+      </div>
+      <div class="gron"><p>Handen pressar lådan hårdare mot golvet. Golvet trycks ihop mer och trycker därför tillbaka hårdare. Normalkraften är alltså inte alltid lika stor som tyngdkraften.</p></div>
+    </section>
+
+    <!-- STEG 3 -->
+    <section data-step="3" data-nav="Visa svar steg 3">
+      <div class="rubrik"><h2>Steg 3</h2><h3>Du drar i lådan</h3><div class="strecket"></div></div>
+      <p>Nu knyter du ett snöre i lådans ovansida och drar rakt uppåt med kraften 20.0&nbsp;N. Lådan lyfter inte från golvet.</p>
+      <ul class="delar">
+        <li><span class="del">a)</span> Rita lådan och alla krafter som verkar på den.</li>
+        <li><span class="del">b)</span> Beräkna normalkraften.</li>
+      </ul>
+    </section>
+
+    <section data-step="3" data-nav="Vidare till steg 4" data-figur="vanster" data-lager="fg snore fn2">
+      <div class="rubrik svar"><h2>Svar steg 3</h2><div class="strecket"></div></div>
+      <p>Snöret drar lådan uppåt med <span class="m">F</span> = 20.0&nbsp;N. Nu finns två krafter uppåt och en nedåt, och lådan står still.</p>
+      <div class="harled">
+        <div class="v">F<sub>N</sub> + F</div><div>=</div><div class="h">F<sub>g</sub></div>
+        <div class="v">F<sub>N</sub></div><div>=</div><div class="h">F<sub>g</sub> − F</div>
+        <div class="v"></div><div>=</div><div class="h">58.9 − 20.0</div>
+        <div class="v"></div><div>≈</div><div class="h">38.9 <span class="up">N</span></div>
+      </div>
+      <div class="gron"><p>Snöret bär en del av lådans tyngd, och golvet behöver bara bära resten. Lådan trycker lättare mot golvet, och golvet trycker lättare tillbaka.</p></div>
+    </section>
+
+    <!-- STEG 4 -->
+    <section data-step="4" data-nav="Visa svar steg 4">
+      <div class="rubrik"><h2>Steg 4</h2><h3>Du drar hårdare</h3><div class="strecket"></div></div>
+      <p>Du ökar kraften i snöret till 70.0&nbsp;N.</p>
+      <ul class="delar">
+        <li><span class="del">a)</span> Räkna ut normalkraften på samma sätt som i steg 3.</li>
+        <li><span class="del">b)</span> Vad betyder svaret? Vad händer med lådan?</li>
+      </ul>
+      <div class="ledtrad"><div><i>Ledtråd:</i> Fundera på vad ett minustecken säger om åt vilket håll en kraft verkar.</div></div>
+    </section>
+
+    <section data-step="4" data-nav="Vidare till steg 5" data-figur="vanster" data-fig="lyft" data-lager="fg drag">
+      <div class="rubrik svar"><h2>Svar steg 4</h2><div class="strecket"></div></div>
+      <div class="harled">
+        <div class="v">F<sub>N</sub></div><div>=</div><div class="h">F<sub>g</sub> − F</div>
+        <div class="v"></div><div>=</div><div class="h">58.9 − 70.0</div>
+        <div class="v"></div><div>≈</div><div class="h">−11.1 <span class="up">N</span></div>
+      </div>
+      <p>Minustecknet betyder att golvet skulle behöva dra lådan nedåt med 11.1&nbsp;N för att den ska stå kvar. Men ett golv kan bara trycka på det som står på det, det kan inte hålla fast lådan.</p>
+      <div class="gron"><p>Räkningen bygger på att lådan står still, och det stämmer inte längre. Lådan lyfter från golvet, och normalkraften blir noll. Kvar finns bara tyngdkraften och snöret.</p></div>
+    </section>
+
+    <!-- STEG 5 -->
+    <section data-step="5" data-nav="Visa svar steg 5">
+      <div class="rubrik"><h2>Steg 5</h2><h3>Lådan lyfter</h3><div class="strecket"></div></div>
+      <p>Lådan har lämnat golvet, och du fortsätter att dra med 70.0&nbsp;N.</p>
+      <ul class="delar">
+        <li><span class="del">a)</span> Rita lådan och alla krafter som verkar på den.</li>
+        <li><span class="del">b)</span> Beräkna lådans acceleration.</li>
+      </ul>
+      <div class="ledtrad"><div><i>Ledtråd:</i> Krafterna tar inte längre ut varandra. Det som blir över ger lådan en acceleration.</div></div>
+    </section>
+
+    <section data-step="5" data-nav="Vidare till steg 6" data-figur="vanster" data-fig="lyft" data-lager="fg drag a">
+      <div class="rubrik svar"><h2>Svar steg 5</h2><div class="strecket"></div></div>
+      <p>Snöret drar uppåt hårdare än jorden drar nedåt. Skillnaden är den resulterande kraften, och den pekar uppåt.</p>
+      <div class="harled">
+        <div class="v">F<sub>res</sub></div><div>=</div><div class="h">F − F<sub>g</sub></div>
+        <div class="v"></div><div>=</div><div class="h">70.0 − 58.9</div>
+        <div class="v"></div><div>≈</div><div class="h">11.1 <span class="up">N</span></div>
+      </div>
+      <p>Den resulterande kraften ger lådan en acceleration uppåt.</p>
+      <div class="harled">
+        <div class="v">a</div><div>=</div><div class="h"><span class="brak"><span class="tal">F<sub>res</sub></span><span class="namn">m</span></span> = <span class="brak"><span class="tal">11.1</span><span class="namn">6.0</span></span></div>
+        <div class="v"></div><div>≈</div><div class="h">1.85 <span class="up">m/s²</span></div>
+      </div>
+    </section>
+
+    <!-- STEG 6 -->
+    <section data-step="6" data-nav="Visa svar steg 6">
+      <div class="rubrik"><h2>Steg 6</h2><h3>Lådan i hissen</h3><div class="strecket"></div></div>
+      <p>Har du märkt att du känns tyngre i en hiss precis när den startar uppåt? Vi undersöker det med lådan.</p>
+      <p>Lådan står nu på golvet i en hiss. Vi tittar på hissens start, när den accelererar uppåt med 1.5&nbsp;m/s². Lådan följer med hissen.</p>
+      <ul class="delar">
+        <li><span class="del">a)</span> Rita lådan och alla krafter som verkar på den. Vilken kraft ska vara störst?</li>
+        <li><span class="del">b)</span> Beräkna normalkraften från hissgolvet.</li>
+      </ul>
+      <div class="ledtrad"><div><i>Ledtråd:</i> I steg 5 fick lådan en acceleration uppåt av en resulterande kraft. Vad står för den kraften nu?</div></div>
+    </section>
+
+    <section data-step="6" data-nav="Till sammanfattningen" data-figur="vanster" data-fig="hiss" data-lager="fg fnh a">
+      <div class="rubrik svar"><h2>Svar steg 6</h2><div class="strecket"></div></div>
+      <p>Bara två krafter verkar på lådan: tyngdkraften och normalkraften från hissgolvet. Lådan accelererar uppåt, så den resulterande kraften pekar uppåt. Normalkraften måste därför vara större än tyngdkraften.</p>
+      <div class="harled">
+        <div class="v">F<sub>N</sub> − F<sub>g</sub></div><div>=</div><div class="h">ma</div>
+        <div class="v">F<sub>N</sub></div><div>=</div><div class="h">F<sub>g</sub> + ma</div>
+        <div class="v"></div><div>=</div><div class="h">58.9 + 6.0 · 1.5</div>
+        <div class="v"></div><div>≈</div><div class="h">67.9 <span class="up">N</span></div>
+      </div>
+      <div class="gron"><p>Hissgolvet ska både bära lådan och sätta fart på den uppåt. Golvet trycks ihop mer och trycker hårdare. Det är just det hårdare trycket mot fötterna du känner som att bli tyngre.</p></div>
+    </section>
+
+    <!-- SAMMANFATTNING -->
+    <section data-step="9" data-nav="Börja om">
+      <div class="rubrik"><h2>Sammanfattning</h2><h3>Normalkraften anpassar sig</h3><div class="strecket"></div></div>
+      <div style="max-width:var(--matt)">
+      <table>
+        <tr><th>Situation</th><th>Normalkraft</th></tr>
+        <tr><td>Lådan står still</td><td>58.9&nbsp;N</td></tr>
+        <tr><td>Handen trycker nedåt med 20.0&nbsp;N</td><td>78.9&nbsp;N</td></tr>
+        <tr><td>Snöret drar uppåt med 20.0&nbsp;N</td><td>38.9&nbsp;N</td></tr>
+        <tr><td>Snöret drar uppåt med 70.0&nbsp;N</td><td>0&nbsp;N, lådan lyfter</td></tr>
+        <tr><td>Hissen accelererar uppåt med 1.5&nbsp;m/s²</td><td>67.9&nbsp;N</td></tr>
+      </table>
+      </div>
+      <div class="gron" style="margin-top:30px"><p>Normalkraften har ingen bestämd storlek. Golvet trycker med precis den kraft som behövs för att lådan ska röra sig som den gör. Det kan trycka hårdare eller lättare, men det kan aldrig dra.</p></div>
+    </section>
+
+  </div>
+  <div id="tal"></div>
+  <nav class="nav">
+    <button id="prev" title="Föregående (vänsterpil)">◀ Tillbaka</button>
+    <button id="next" title="Nästa (högerpil eller mellanslag)">Nästa ▶</button>
+  </nav>
+</div>
+
+<template id="fig-huvud">
+<svg viewBox="50 145 340 360" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif" font-size="19"><line class="kontur" x1="60" y1="420" x2="380" y2="420"/><g class="tunn"><line x1="60" y1="432" x2="72" y2="420"/><line x1="84" y1="432" x2="96" y2="420"/><line x1="108" y1="432" x2="120" y2="420"/><line x1="132" y1="432" x2="144" y2="420"/><line x1="156" y1="432" x2="168" y2="420"/><line x1="180" y1="432" x2="192" y2="420"/><line x1="204" y1="432" x2="216" y2="420"/><line x1="228" y1="432" x2="240" y2="420"/><line x1="252" y1="432" x2="264" y2="420"/><line x1="276" y1="432" x2="288" y2="420"/><line x1="300" y1="432" x2="312" y2="420"/><line x1="324" y1="432" x2="336" y2="420"/><line x1="348" y1="432" x2="360" y2="420"/></g><rect class="vit" x="140" y="330" width="160" height="90"/><g class="lager l-fg"><g stroke="#c81e28"><line class="vektor" x1="220" y1="375" x2="220" y2="492.8"/><path class="hulling" d="M213.5 483.3 L220 492.8 L226.5 483.3"/></g><text class="etikett" x="233" y="488" fill="#c81e28">F<tspan class="sub" dy="4">g</tspan></text></g><g class="lager l-fn0"><g stroke="#145ab4"><line class="vektor" x1="214" y1="420" x2="214" y2="302.2"/><path class="hulling" d="M207.5 311.7 L214 302.2 L220.5 311.7"/></g><text class="etikett" x="178" y="297" fill="#145ab4">F<tspan class="sub" dy="4">N</tspan></text></g><g class="lager l-fn1"><g stroke="#145ab4"><line class="vektor" x1="214" y1="420" x2="214" y2="262.2"/><path class="hulling" d="M207.5 271.7 L214 262.2 L220.5 271.7"/></g><text class="etikett" x="178" y="276" fill="#145ab4">F<tspan class="sub" dy="4">N</tspan></text></g><g class="lager l-fn2"><g stroke="#145ab4"><line class="vektor" x1="214" y1="420" x2="214" y2="342.2"/><path class="hulling" d="M207.5 351.7 L214 342.2 L220.5 351.7"/></g><text class="etikett" x="178" y="362" fill="#145ab4">F<tspan class="sub" dy="4">N</tspan></text></g><g class="lager l-hand"><g stroke="#1d1d1b" stroke-linecap="round" fill="none"><path stroke-width="8" d="M227.5 321 L241 296"/><circle cx="226" cy="324" r="5.5" fill="#1d1d1b" stroke="none"/></g><g stroke="#8a4fc4"><line class="vektor" x1="226" y1="330" x2="226" y2="370"/><path class="hulling" d="M219.5 360.5 L226 370 L232.5 360.5"/></g><text class="etikett" x="239" y="358" fill="#8a4fc4">F</text></g><g class="lager l-snore"><line class="kontur" x1="220" y1="330" x2="220" y2="192"/><g stroke="#1d1d1b" stroke-linecap="round" fill="none"><path stroke-width="8" d="M221.5 184 L232 162"/><circle cx="220" cy="187" r="5.5" fill="#1d1d1b" stroke="none"/></g><g stroke="#c81e28"><line class="vektor" x1="220" y1="330" x2="220" y2="290"/><path class="hulling" d="M213.5 299.5 L220 290 L226.5 299.5"/></g><text class="etikett" x="233" y="312" fill="#c81e28">F</text></g></svg>
+</template>
+<template id="fig-lyft">
+<svg viewBox="50 95 340 400" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif" font-size="19"><line class="kontur" x1="60" y1="420" x2="380" y2="420"/><g class="tunn"><line x1="60" y1="432" x2="72" y2="420"/><line x1="84" y1="432" x2="96" y2="420"/><line x1="108" y1="432" x2="120" y2="420"/><line x1="132" y1="432" x2="144" y2="420"/><line x1="156" y1="432" x2="168" y2="420"/><line x1="180" y1="432" x2="192" y2="420"/><line x1="204" y1="432" x2="216" y2="420"/><line x1="228" y1="432" x2="240" y2="420"/><line x1="252" y1="432" x2="264" y2="420"/><line x1="276" y1="432" x2="288" y2="420"/><line x1="300" y1="432" x2="312" y2="420"/><line x1="324" y1="432" x2="336" y2="420"/><line x1="348" y1="432" x2="360" y2="420"/></g><rect class="vit" x="140" y="316" width="160" height="90"/><g class="lager l-fg"><g stroke="#c81e28"><line class="vektor" x1="220" y1="361" x2="220" y2="478.8"/><path class="hulling" d="M213.5 469.3 L220 478.8 L226.5 469.3"/></g><text class="etikett" x="233" y="474" fill="#c81e28">F<tspan class="sub" dy="4">g</tspan></text></g><g class="lager l-drag"><line class="kontur" x1="220" y1="316" x2="220" y2="140"/><g stroke="#1d1d1b" stroke-linecap="round" fill="none"><path stroke-width="8" d="M221.5 132 L232 110"/><circle cx="220" cy="135" r="5.5" fill="#1d1d1b" stroke="none"/></g><g stroke="#c81e28"><line class="vektor" x1="220" y1="316" x2="220" y2="176"/><path class="hulling" d="M213.5 185.5 L220 176 L226.5 185.5"/></g><text class="etikett" x="233" y="210" fill="#c81e28">F</text></g><g class="lager l-a"><g stroke="#8a8880"><line class="vektor" x1="345" y1="380" x2="345" y2="320"/><path class="hulling" d="M338.5 329.5 L345 320 L351.5 329.5"/></g><text class="etikett" x="355" y="356" fill="#8a8880">a</text></g></svg>
+</template>
+<template id="fig-hiss">
+<svg viewBox="50 95 390 410" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, 'Times New Roman', serif" font-size="19"><line class="kontur" x1="220" y1="150" x2="220" y2="100"/><rect x="60" y="150" width="320" height="270" fill="none" stroke="#1d1d1b" stroke-width="1.6" stroke-linejoin="round"/><line x1="60" y1="420" x2="380" y2="420" stroke="#1d1d1b" stroke-width="3.2" stroke-linecap="round"/><rect class="vit" x="140" y="330" width="160" height="90"/><g class="lager l-fg"><g stroke="#c81e28"><line class="vektor" x1="220" y1="375" x2="220" y2="492.8"/><path class="hulling" d="M213.5 483.3 L220 492.8 L226.5 483.3"/></g><text class="etikett" x="233" y="488" fill="#c81e28">F<tspan class="sub" dy="4">g</tspan></text></g><g class="lager l-fnh"><g stroke="#145ab4"><line class="vektor" x1="214" y1="420" x2="214" y2="284.2"/><path class="hulling" d="M207.5 293.7 L214 284.2 L220.5 293.7"/></g><text class="etikett" x="178" y="294" fill="#145ab4">F<tspan class="sub" dy="4">N</tspan></text></g><g class="lager l-a"><g stroke="#8a8880"><line class="vektor" x1="412" y1="330" x2="412" y2="270"/><path class="hulling" d="M405.5 279.5 L412 270 L418.5 279.5"/></g><text class="etikett" x="422" y="306" fill="#8a8880">a</text></g></svg>
+</template>
+
+<script>
+(function(){
+  const stage=document.getElementById('stage'), deck=document.getElementById('deck'),
+        rail=document.getElementById('rail'), bNext=document.getElementById('next'),
+        bPrev=document.getElementById('prev'), tal=document.getElementById('tal'),
+        slides=Array.from(deck.querySelectorAll('section'));
+
+  slides.forEach(sl=>{
+    sl.classList.add('slide');
+    const sida=sl.dataset.figur; if(!sida) return;
+    const mall=document.getElementById('fig-'+(sl.dataset.fig||'huvud'));
+    if(!mall){ console.warn('Ingen figurmall for sidan',sl); return; }
+    const kol=document.createElement('div'); kol.className='textkol';
+    while(sl.firstChild) kol.appendChild(sl.firstChild);
+    const plats=document.createElement('div'); plats.className='figurplats';
+    const svg=mall.content.cloneNode(true).querySelector('svg');
+    (sl.dataset.lager||'').split(/\s+/).filter(Boolean).forEach(l=>svg.classList.add('v-'+l));
+    plats.appendChild(svg);
+    kol.querySelectorAll('.begrepp').forEach(d=>plats.insertBefore(d,svg));
+    sl.classList.add('tva'); if(sida==='hoger') sl.classList.add('hoger');
+    sl.append(plats,kol);
+  });
+
+  const steg=[];
+  slides.forEach((sl,i)=>{
+    const s=sl.dataset.step||'0';
+    let rad=steg.find(r=>r.step===s); if(!rad){rad={step:s,index:[]};steg.push(rad);}
+    rad.index.push(i);
+  });
+  steg.forEach(rad=>{
+    const row=document.createElement('div'); row.className='railrow'; row.dataset.step=rad.step;
+    const num=document.createElement('div'); num.className='railnum';
+    num.textContent = rad.step==='0' ? '·' : (+rad.step>=9 ? '✓' : rad.step);
+    row.appendChild(num);
+    const dots=document.createElement('div'); dots.className='raildots';
+    rad.index.forEach(i=>{
+      const d=document.createElement('div'); d.className='dot'; d.dataset.i=i;
+      d.title='Sida '+(i+1); d.addEventListener('click',()=>visa(i)); dots.appendChild(d);
+    });
+    row.appendChild(dots); rail.appendChild(row);
+  });
+  const label=document.createElement('div'); label.className='raillabel';
+  label.textContent='steg'; rail.appendChild(label);
+
+  let n=0;
+  function visa(i){
+    n=Math.max(0,Math.min(slides.length-1,i));
+    slides.forEach((sl,k)=>sl.classList.toggle('on',k===n));
+    rail.querySelectorAll('.dot').forEach(d=>{
+      const k=+d.dataset.i;
+      d.classList.toggle('now',k===n); d.classList.toggle('done',k<n);
+    });
+    rail.querySelectorAll('.railrow').forEach(r=>{
+      r.classList.toggle('active', r.dataset.step===(slides[n].dataset.step||'0'));
+    });
+    bPrev.disabled=(n===0);
+    bNext.textContent=(slides[n].dataset.nav||'Nästa')+' ▶';
+    tal.textContent='Sida '+(n+1)+' av '+slides.length;
+  }
+  bNext.addEventListener('click',()=>visa(n===slides.length-1?0:n+1));
+  bPrev.addEventListener('click',()=>visa(n-1));
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();bNext.click();}
+    if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault(); if(n>0) visa(n-1);}
+    if(e.key==='Home') visa(0);
+    if(e.key==='End') visa(slides.length-1);
+  });
+  function passa(){
+    const s=Math.min(window.innerWidth/1600, window.innerHeight/900);
+    stage.style.transform='scale('+s+')';
+    stage.style.margin=(900*s-900)/2+'px '+(1600*s-1600)/2+'px';
+  }
+  window.addEventListener('resize',passa); passa(); visa(0);
+})();
+</script>
+</body>
+</html>
