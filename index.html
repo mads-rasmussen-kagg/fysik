@@ -21,6 +21,11 @@
                     (eller en hel adress som börjar med https://)
      beskrivning  = en rad text under titeln (får vara tom: "")
      kurser       = lista med kurs-id där sidan ska synas
+     nyckelord    = lista med nyckelord, skrivna med små bokstäver.
+                    Ett nyckelord blir klickbart och leder till en sida
+                    med alla demonstrationer som har samma nyckelord,
+                    oavsett kurs. Stava likadant överallt, annars blir
+                    det två olika nyckelord.
 
    Sidorna visas i samma ordning som de står i listan nedan.
 
@@ -44,42 +49,49 @@ const sidor = [
     fil: "tempograf.html",
     beskrivning: "Beräkna accelerationen utifrån en given tempografremsa",
     kurser: ["fysik-1"],
+    nyckelord: ["rörelse"],
   },
   {
     titel: "Normalkraft övningar",
     fil: "normalkraften.html",
     beskrivning: "Jobba mer med normalkraften",
     kurser: ["fysik-1"],
+    nyckelord: ["krafter", "normalkraft"],
   },
   {
     titel: "Lutande plan med friktion",
     fil: "lutande-plan.html",
     beskrivning: "Härled uttryck för krafter på ett lutande plan",
     kurser: ["fysik-1"],
+    nyckelord: ["krafter", "normalkraft", "friktion och luftmotstånd", "trigonometri"],
   },
   {
     titel: "Dämpad svängningsrörelse",
     fil: "dampad-svangning.html",
     beskrivning: "Harmonisk svängning med dämpning",
     kurser: ["fysik-1", "fysik-2"],
+    nyckelord: ["svängningar", "energi"],
   },
   {
     titel: "Kaströrelse med luftmotstånd",
     fil: "kastrorelse-med-luftmotstand.html",
     beskrivning: "Kaströrelse med justerbart luftmotstånd",
     kurser: ["fysik-1", "fysik-2"],
+    nyckelord: ["rörelse", "krafter", "friktion och luftmotstånd"],
   },
   {
     titel: "Kulbanor och energiprincipen",
     fil: "kulbana.html",
     beskrivning: "Undersök energiprincipen med interaktiva kulbanor",
     kurser: ["fysik-1"],
+    nyckelord: ["energi", "rörelse"],
   },
   {
     titel: "Kulbanor med tävling",
     fil: "kultavling.html",
     beskrivning: "Undersök vilken kula som kommer först med interaktiva kulbanor",
     kurser: ["fysik-1"],
+    nyckelord: ["energi", "rörelse"],
   },
 
   /* ---------- Matematik ---------- */
@@ -88,30 +100,35 @@ const sidor = [
     fil: "enhetscirkeln.html",
     beskrivning: "Undersök hur vi definierar cosinus och sinus med enhetscirkeln",
     kurser: ["matte-fort-1c"],
+    nyckelord: ["enhetscirkeln", "trigonometri"],
   },
   {
     titel: "Från sekant till tangent: En funktions derivata",
     fil: "sekant-tangent.html",
     beskrivning: "Undersök hur övergången från en sekant till en tangent på en funktion motsvarar funktionens derivata",
     kurser: ["matte-fort-1c"],
+    nyckelord: ["derivata"],
   },
   {
     titel: "Från sinusvärden i en cirkel till sinuskurvan",
     fil: "sinuskurvan.html",
     beskrivning: "Undersök hur sinusvärdet i enhetscirkeln kan betraktas som en periodisk svängning i planet",
     kurser: ["matte-fort-2"],
+    nyckelord: ["enhetscirkeln", "trigonometri", "svängningar"],
   },
   {
     titel: "Interaktiv sinuskurva med GeoGebra",
     fil: "sinusparametrar.html",
     beskrivning: "Undersök hur en sinusfunktions olika parametrar påverkar funktionsgrafen",
     kurser: ["matte-fort-2"],
+    nyckelord: ["trigonometri", "svängningar"],
   },
   {
     titel: "Produktregeln för derivata",
     fil: "produktregeln.html",
     beskrivning: "Undersök produktregeln med denna grafiska motivering",
     kurser: ["matte-fort-2"],
+    nyckelord: ["derivata"],
   },
 ];
 
@@ -128,6 +145,7 @@ const sidor = [
     --muted: #6b6862;
     --line: #e5e2dc;
     --accent: #2f6f4f;
+    --chip: #f1efe9;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -137,6 +155,7 @@ const sidor = [
       --muted: #9a9892;
       --line: #2e3136;
       --accent: #7fb99a;
+      --chip: #2a2d32;
     }
   }
   * { box-sizing: border-box; }
@@ -158,6 +177,10 @@ const sidor = [
     margin: 0 0 0.35rem;
   }
   .ingress { color: var(--muted); margin: 0 0 3rem; }
+  .overrubrik {
+    font-size: 0.8rem; font-weight: 650; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 0.2rem;
+  }
 
   /* Ämnena ligger sida vid sida på breda skärmar och staplas på smala. */
   .amnen {
@@ -182,9 +205,11 @@ const sidor = [
   }
   ul { list-style: none; margin: 0; padding: 0; }
   li { margin: 0 0 0.6rem; }
-  a.kort {
+
+  /* Korten. Kurskorten på startsidan är en enda länk. Demokorten har en länk
+     för titeln och beskrivningen och egna länkar för nyckelorden under. */
+  .kort {
     display: block;
-    padding: 0.95rem 1.1rem;
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -192,15 +217,41 @@ const sidor = [
     color: inherit;
     transition: border-color 0.15s ease, transform 0.15s ease;
   }
-  a.kort:hover, a.kort:focus-visible {
+  a.kort { padding: 0.95rem 1.1rem; }
+  .kort:hover, .kort:focus-within {
     border-color: var(--accent);
     transform: translateY(-1px);
   }
+  .kort .huvud { display: block; padding: 0.8rem 1rem 0.55rem; color: inherit; text-decoration: none; }
+  .kort .huvud:only-child { padding-bottom: 0.8rem; }
   .titel { font-weight: 600; font-size: 1.05rem; }
-  a.kort:hover .titel { color: var(--accent); }
+  .kort .huvud:hover .titel, a.kort:hover .titel { color: var(--accent); }
   .beskrivning { color: var(--muted); font-size: 0.92rem; margin-top: 0.15rem; }
+  .kurstext { color: var(--muted); font-size: 0.78rem; margin-top: 0.3rem; }
 
-  /* Kurssidan */
+  .ord { display: flex; flex-wrap: wrap; gap: 0.35rem; padding: 0 1rem 0.75rem; }
+  a.chip {
+    display: inline-block;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    background: var(--chip);
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  a.chip:hover, a.chip:focus-visible { color: var(--accent); border-color: var(--accent); }
+  a.chip.aktiv { color: var(--accent); border-color: var(--accent); font-weight: 600; }
+  a.chip .antal { opacity: 0.7; margin-left: 0.3rem; }
+
+  /* Nyckelordsraden på startsidan */
+  .allaord { margin-top: 0.5rem; }
+  .allaord .ord { padding: 0; gap: 0.5rem; }
+  .allaord a.chip { font-size: 0.85rem; padding: 0.3rem 0.8rem; }
+
+  /* Kurs- och nyckelordssidorna: två kort bredvid varandra, ett per rad på smala skärmar. */
   .tillbaka {
     display: inline-block;
     color: var(--accent);
@@ -209,7 +260,6 @@ const sidor = [
     margin-bottom: 1.5rem;
   }
   .tillbaka:hover { text-decoration: underline; }
-  /* Två kort bredvid varandra på kurssidan, ett per rad på smala skärmar. */
   .kurslista {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -219,7 +269,8 @@ const sidor = [
     .kurslista { grid-template-columns: minmax(0, 1fr); }
   }
   .kurslista li { margin: 0; display: flex; }
-  .kurslista a.kort { flex: 1; padding: 0.8rem 1rem; }
+  .kurslista .kort { flex: 1; display: flex; flex-direction: column; }
+  .kurslista .huvud { flex: 1; }
   .kurslista .titel { font-size: 0.95rem; }
   .kurslista .beskrivning { font-size: 0.85rem; }
 
@@ -251,21 +302,70 @@ const sidor = [
   }
 
   function sidorForKurs(id) {
-    return sidor
-      .map(function (s, i) { return { s: s, i: i }; })
-      .filter(function (x) { return x.s.kurser && x.s.kurser.indexOf(id) !== -1; })
-      .map(function (x) { return x.s; });
+    return sidor.filter(function (s) { return s.kurser && s.kurser.indexOf(id) !== -1; });
   }
+  function sidorForOrd(ord) {
+    return sidor.filter(function (s) { return s.nyckelord && s.nyckelord.indexOf(ord) !== -1; });
+  }
+  // Alla nyckelord i bokstavsordning, med hur många sidor som har dem
+  function allaNyckelord() {
+    const antal = {};
+    sidor.forEach(function (s) {
+      (s.nyckelord || []).forEach(function (o) { antal[o] = (antal[o] || 0) + 1; });
+    });
+    return Object.keys(antal)
+      .sort(function (a, b) { return a.localeCompare(b, "sv"); })
+      .map(function (o) { return { ord: o, antal: antal[o] }; });
+  }
+  function ordAdress(ord) { return "#nyckelord/" + encodeURIComponent(ord); }
+  function versal(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
 
   function antalText(n) {
     return n === 1 ? "1 sida" : n + " sidor";
+  }
+
+  function chip(ord, aktivt, antal) {
+    const a = el("a", "chip" + (ord === aktivt ? " aktiv" : ""), ord);
+    a.href = ordAdress(ord);
+    if (antal != null) a.appendChild(el("span", "antal", String(antal)));
+    return a;
+  }
+
+  // Ett demokort: titel och beskrivning som länk till demon, nyckelorden under.
+  // visaKurser används på nyckelordssidorna, där sidorna kommer från flera kurser.
+  function demokort(sida, aktivtOrd, visaKurser) {
+    const rad = el("li");
+    const kort = el("div", "kort");
+    const lank = el("a", "huvud");
+    lank.href = sida.fil;
+    if (/^https?:\/\//i.test(sida.fil)) {
+      lank.target = "_blank";
+      lank.rel = "noopener";
+    }
+    lank.appendChild(el("div", "titel", sida.titel));
+    if (sida.beskrivning) lank.appendChild(el("div", "beskrivning", sida.beskrivning));
+    if (visaKurser) {
+      const namn = (sida.kurser || []).map(function (id) {
+        const k = kurser.find(function (k) { return k.id === id; });
+        return k ? k.namn : id;
+      });
+      if (namn.length) lank.appendChild(el("div", "kurstext", namn.join(", ")));
+    }
+    kort.appendChild(lank);
+    if (sida.nyckelord && sida.nyckelord.length) {
+      const ord = el("div", "ord");
+      sida.nyckelord.forEach(function (o) { ord.appendChild(chip(o, aktivtOrd)); });
+      kort.appendChild(ord);
+    }
+    rad.appendChild(kort);
+    return rad;
   }
 
   function visaStart() {
     document.title = SIDTITEL;
     ut.replaceChildren();
     ut.appendChild(el("h1", "", SIDTITEL));
-    ut.appendChild(el("p", "ingress", "Simuleringar och interaktivt material. Välj din kurs."));
+    ut.appendChild(el("p", "ingress", "Simuleringar och interaktivt material. Välj din kurs eller ett nyckelord."));
 
     const amnen = el("div", "amnen");
     const ordning = [];
@@ -293,38 +393,54 @@ const sidor = [
       amnen.appendChild(kolumn);
     });
     ut.appendChild(amnen);
+
+    const ord = allaNyckelord();
+    if (ord.length) {
+      const sektion = el("section", "allaord");
+      sektion.appendChild(el("h2", "", "Nyckelord"));
+      const rad = el("div", "ord");
+      ord.forEach(function (o) { rad.appendChild(chip(o.ord, null, o.antal)); });
+      sektion.appendChild(rad);
+      ut.appendChild(sektion);
+    }
+  }
+
+  function tillbakaLank() {
+    const a = el("a", "tillbaka", "‹ Alla kurser");
+    a.href = "#";
+    return a;
   }
 
   function visaKurs(kurs) {
     document.title = kurs.namn + " | " + SIDTITEL;
     ut.replaceChildren();
-
-    const tillbaka = el("a", "tillbaka", "‹ Alla kurser");
-    tillbaka.href = "#";
-    ut.appendChild(tillbaka);
+    ut.appendChild(tillbakaLank());
     ut.appendChild(el("h1", "", kurs.namn));
-    ut.appendChild(el("p", "ingress", "Klicka på en rubrik för att öppna."));
-
+    ut.appendChild(el("p", "ingress", "Klicka på en rubrik för att öppna, eller på ett nyckelord för att se allt med samma nyckelord."));
     const lista = el("ul", "kurslista");
-    sidorForKurs(kurs.id).forEach(function (sida) {
-      const rad = el("li");
-      const lank = el("a", "kort");
-      lank.href = sida.fil;
-      if (/^https?:\/\//i.test(sida.fil)) {
-        lank.target = "_blank";
-        lank.rel = "noopener";
-      }
-      lank.appendChild(el("div", "titel", sida.titel));
-      if (sida.beskrivning) lank.appendChild(el("div", "beskrivning", sida.beskrivning));
-      rad.appendChild(lank);
-      lista.appendChild(rad);
-    });
+    sidorForKurs(kurs.id).forEach(function (s) { lista.appendChild(demokort(s, null, false)); });
+    ut.appendChild(lista);
+  }
+
+  function visaOrd(ord) {
+    document.title = versal(ord) + " | " + SIDTITEL;
+    ut.replaceChildren();
+    ut.appendChild(tillbakaLank());
+    ut.appendChild(el("p", "overrubrik", "Nyckelord"));
+    ut.appendChild(el("h1", "", versal(ord)));
+    ut.appendChild(el("p", "ingress", "Alla demonstrationer med det här nyckelordet, oavsett kurs."));
+    const lista = el("ul", "kurslista");
+    sidorForOrd(ord).forEach(function (s) { lista.appendChild(demokort(s, ord, true)); });
     ut.appendChild(lista);
   }
 
   function visa() {
-    const id = decodeURIComponent(location.hash.replace(/^#/, ""));
-    const kurs = kurser.find(function (k) { return k.id === id; });
+    const h = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (h.indexOf("nyckelord/") === 0) {
+      const ord = h.slice("nyckelord/".length);
+      if (sidorForOrd(ord).length > 0) { visaOrd(ord); window.scrollTo(0, 0); return; }
+    }
+    const kurs = kurser.find(function (k) { return k.id === h; });
     if (kurs && sidorForKurs(kurs.id).length > 0) visaKurs(kurs);
     else visaStart();
     window.scrollTo(0, 0);
