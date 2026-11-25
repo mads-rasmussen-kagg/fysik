@@ -9,7 +9,10 @@
 
   Ersätter GeoGebra-filen med enhetscirkeln: en vinkel v ger en punkt på
   cirkeln, och punktens x- och y-koordinat är cos v och sin v (blå och röd
-  sträcka).
+  sträcka). Vid punkten står (cos(v), sin(v)) = (x, y) med det konkreta
+  vinkelvärdet, i samma färger och med samma avrundning som tabellen, så att
+  det syns direkt vid punkten att koordinaterna är cos och sin. Cirkeln är mindre än i första versionen för att lämna plats åt
+  dem; axelsiffror som en koordinat- eller vinkeletikett skulle täcka tas bort.
 
   Speglingarna har två nivåer. Utan "Vinklar och värden" visar en spegling
   bara spegelpunkten och den streckade linjen dit, som i förlagan. Med den
@@ -63,20 +66,24 @@
   .frac .num{border-bottom:1.5px solid currentColor;padding:0 .15em .04em}
   .frac .den{padding:.04em .15em 0}
 
-  #fig{position:absolute;left:20px;top:30px;width:840px;height:840px;touch-action:none;cursor:pointer}
+  #fig{position:absolute;left:45px;top:0;width:900px;height:900px;touch-action:none;cursor:pointer;overflow:visible}
   #fig text{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;fill:var(--text)}
+  #etiketter{position:absolute;left:0;top:0;pointer-events:none}
+  .koord{position:absolute;font-size:21px;line-height:1.4;padding:1px 6px;border-radius:5px;background:rgba(251,247,240,.92)}
+  .koord .cos{color:var(--cos)}
+  .koord .sin{color:var(--sin)}
   #fig .halo{stroke:var(--bg);stroke-width:6px;stroke-linejoin:round;paint-order:stroke}
 
   /* Panelen är ett enda rutnät, så att likhetstecken och decimalpunkter står
      i linje genom alla tre tabellraderna. De tomma .fyll-raderna delar lika på
      det lediga utrymmet, så att panelens över- och underkant ligger i höjd med
      cirkelns. */
-  #panel{position:absolute;left:910px;top:110px;width:650px;height:680px;display:grid;
+  #panel{position:absolute;left:995px;top:138px;width:575px;height:624px;display:grid;
          grid-template-columns:auto auto auto 1fr auto auto auto;
          grid-template-rows:auto 1fr auto 1fr auto auto 1fr auto auto 1fr auto;align-items:center}
   #panel > .hel, #panel > .fyll{grid-column:1 / -1}
 
-  #vrad{font-size:46px;height:64px;display:flex;align-items:center;margin:-8px 0 14px}
+  #vrad{font-size:42px;height:60px;display:flex;align-items:center;margin:-8px 0 14px}
   .varde{display:inline-flex;align-items:center;min-width:120px;height:58px;padding:0 10px;
          border-bottom:2px dashed var(--knapp-kant);cursor:text}
   .varde input{font:inherit;width:200px;border:none;background:var(--panel);outline:2px solid var(--vinkel);padding:2px 4px}
@@ -86,8 +93,8 @@
     border-radius:8px;cursor:pointer;touch-action:manipulation;
   }
   button.på{background:var(--text);color:var(--bg);border-color:var(--text)}
-  .seg{display:flex;margin-top:22px}
-  .seg button{flex:1;height:58px;font-size:27px;border-radius:0}
+  .seg{display:flex;margin-top:20px}
+  .seg button{flex:1;height:52px;font-size:25px;border-radius:0}
   .seg button:first-child{border-radius:8px 0 0 8px}
   .seg button:last-child{border-radius:0 8px 8px 0;border-left:none}
 
@@ -106,17 +113,17 @@
     background:var(--text);border:5px solid var(--knapp);box-shadow:0 0 0 2px var(--text);
   }
 
-  #panel .c{font-size:30px;height:52px;display:flex;align-items:center}
+  #panel .c{font-size:27px;height:48px;display:flex;align-items:center}
   #panel .uttr, #panel .tal{justify-content:flex-end}
   #panel .eq{padding:0 .3em}
   #panel .cos{color:var(--cos)}
   #panel .sin{color:var(--sin)}
   #panel .dold{visibility:hidden}
   .rubrik{display:flex;align-items:center;margin-bottom:8px}
-  .rubrik .info{font-size:30px;margin-left:26px;color:var(--vinkel)}
+  .rubrik .info{font-size:28px;margin-left:22px;color:var(--vinkel)}
   /* Av/på-knapparna: en ruta som bockas i, i stället för en svart knapp,
      så att påslagna speglingar inte blir de tyngsta föremålen på skärmen */
-  button.vaxel{height:54px;font-size:26px;padding:0 20px 0 14px;display:inline-flex;align-items:center;
+  button.vaxel{height:50px;font-size:24px;padding:0 20px 0 14px;display:inline-flex;align-items:center;
                background:transparent;border-color:transparent}
   button.vaxel::before{content:"";width:26px;height:26px;margin-right:14px;border:2.5px solid var(--linje);
                border-radius:5px;box-sizing:border-box;flex:none}
@@ -128,7 +135,8 @@
 </head>
 <body>
 <div id="scen">
-  <svg id="fig" viewBox="0 0 840 840" aria-label="Enhetscirkeln"></svg>
+  <svg id="fig" viewBox="0 0 900 900" aria-label="Enhetscirkeln"></svg>
+  <div id="etiketter"></div>
 
   <div id="panel">
     <div class="hel">
@@ -164,10 +172,12 @@
   "use strict";
   var NS = "http://www.w3.org/2000/svg";
   var P = Math.PI, GRAD = P/180;
-  var C = 420, R = 340;          // cirkelns mitt och radie i figuren
+  var C = 450, R = 260;          // cirkelns mitt och radie i figuren; marginalen runt cirkeln är plats för etiketterna
+  var FIGX = 45, PANELX = 995;   // figurens och panelens vänsterkant i scenen (samma som i CSS)
 
   var scen = document.getElementById("scen");
   var svg = document.getElementById("fig");
+  var etiketter = document.getElementById("etiketter");
 
   function skala(){
     var s = Math.min(window.innerWidth/1600, window.innerHeight/900);
@@ -224,6 +234,13 @@
     var r = g*GRAD, b = piBrak(Math.abs(r));
     if (b) return (r < 0 ? "−" : "") + (b.p === 1 ? "" : b.p) + "π" + (b.q === 1 ? "" : "/" + b.q);
     return minus(fmt(r, 4));
+  }
+  // cos(g) eller sin(g). Står ett bråk i argumentet används typsnittets större
+  // parentes (parenleft.v4, lagd på U+E000/E001 i delmängden), så att den
+  // täcker bråket som \left( \right) i TeX.
+  function trigHTML(f, g){
+    var arg = vinkelHTML(g), stor = arg.indexOf("frac") >= 0;
+    return f + (stor ? "\uE000" : "(") + arg + (stor ? "\uE001" : ")");
   }
   // Tolkar inskrivna värden: decimalpunkt eller komma, −, °, och π-uttryck
   // som "pi/2" eller "-2π/3". I gradläge betyder π 180°. Svar i grader.
@@ -311,10 +328,7 @@
       // Står ett bråk i argumentet används typsnittets större parentes
       // (parenleft.v4, lagd på U+E000/E001 i delmängden), så att den täcker bråket
       // som \left( \right) i TeX.
-      if (f){
-        var arg = vinkelHTML(g), stor = arg.indexOf("frac") >= 0;
-        e.innerHTML = '<span class="m">' + f + (stor ? "\uE000" : "(") + arg + (stor ? "\uE001" : ")") + "</span>";
-      }
+      if (f) e.innerHTML = '<span class="m">' + trigHTML(f, g) + "</span>";
       if (t) e.textContent = fyra(t === "cos" ? Math.cos(g*GRAD) : Math.sin(g*GRAD));
       e.classList.toggle("dold", !syns[r]);
     });
@@ -362,18 +376,20 @@
   // Vinkelns värde som text i figuren: grader, π-bråk eller decimaltal
   function vinkelSVG(x, y, g, fargen){
     var attr = {"text-anchor":"middle", "class":"halo", style:"fill:" + fargen};
-    function t(s, xx, yy, fs, anc){ var a = Object.assign({}, attr, {x:xx, y:yy, "font-size":fs}); if (anc) a["text-anchor"] = anc; return text(s, a); }
-    if (st.enhet === "grad"){ t(minus(fmt(g, 1)) + "°", x, y + 8, 24); return; }
+    var grupp = el("g", {});
+    function t(s, xx, yy, fs, anc){ var a = Object.assign({}, attr, {x:xx, y:yy, "font-size":fs}); if (anc) a["text-anchor"] = anc; return text(s, a, grupp); }
+    if (st.enhet === "grad"){ t(minus(fmt(g, 1)) + "°", x, y + 8, 24); return grupp; }
     var r = g*GRAD, b = piBrak(Math.abs(r));
-    if (!b){ t(minus(fmt(r, 2)), x, y + 8, 24); return; }
+    if (!b){ t(minus(fmt(r, 2)), x, y + 8, 24); return grupp; }
     var tal = (b.p === 1 ? "" : b.p) + PI;
-    if (b.q === 1){ t((r < 0 ? "−" : "") + tal, x, y + 8, 24); return; }
+    if (b.q === 1){ t((r < 0 ? "−" : "") + tal, x, y + 8, 24); return grupp; }
     var t1 = t(tal, x, y - 4, 20);
     var bred = Math.max(t1.getComputedTextLength(), 12) + 4;
     if (r < 0) t("−", x - bred/2 - 3, y + 8, 24, "end");
-    el("rect", {x:x - bred/2 - 2, y:y - 1, width:bred + 4, height:4, fill:farg("--bg")});
-    el("line", {x1:x - bred/2, x2:x + bred/2, y1:y + 1, y2:y + 1, stroke:fargen, "stroke-width":1.4});
+    el("rect", {x:x - bred/2 - 2, y:y - 1, width:bred + 4, height:4, fill:farg("--bg")}, grupp);
+    el("line", {x1:x - bred/2, x2:x + bred/2, y1:y + 1, y2:y + 1, stroke:fargen, "stroke-width":1.4}, grupp);
     t(String(b.q), x, y + 20, 20);
+    return grupp;
   }
 
   function rita(){
@@ -391,10 +407,10 @@
       el("line", Object.assign({x1:X(-1.2), x2:X(1.2), y1:Y(u), y2:Y(u)}, a));
     }
     // Axlar med pilar
-    el("line", {x1:X(-1.22), x2:X(1.2), y1:C, y2:C, stroke:lin, "stroke-width":2});
-    el("path", {d:"M" + X(1.22) + " " + C + "l-15 -6.5v13z", fill:lin});
-    el("line", {x1:C, x2:C, y1:Y(-1.22), y2:Y(1.2), stroke:lin, "stroke-width":2});
-    el("path", {d:"M" + C + " " + Y(1.22) + "l-6.5 15h13z", fill:lin});
+    el("line", {x1:X(-1.25), x2:X(1.23), y1:C, y2:C, stroke:lin, "stroke-width":2});
+    el("path", {d:"M" + X(1.25) + " " + C + "l-15 -6.5v13z", fill:lin});
+    el("line", {x1:C, x2:C, y1:Y(-1.25), y2:Y(1.23), stroke:lin, "stroke-width":2});
+    el("path", {d:"M" + C + " " + Y(1.25) + "l-6.5 15h13z", fill:lin});
 
     // Cirkeln
     el("circle", {cx:C, cy:C, r:R, fill:"none", stroke:lin, "stroke-width":2.5});
@@ -407,7 +423,7 @@
     // sträckor, vilket de speglade bara får med "Vinklar och värden" påslaget.
     var vis = [["v", true], ["x", st.sx], ["y", st.sy]];
     var det = [["v", true], ["x", st.sx && st.info], ["y", st.sy && st.info]];
-    var radie = {v:60, x:120, y:180};   // 60 bildpunkter mellan bågarna ger plats åt ett π-bråk
+    var radie = {v:50, x:102, y:154};   // 52 bildpunkter mellan bågarna ger plats åt ett π-bråk
 
     // Vinklarna: v som fylld sektor, de speglade som bågar
     det.forEach(function(p){
@@ -441,14 +457,16 @@
     });
 
     // Siffror på axlarna
+    // (samlas i axelText, så att de som krockar med koordinaterna kan tas bort)
+    var axelText = [];
     var tal = [[-1, "−1"], [-0.5, "−0.5"], [0.5, "0.5"], [1, "1"]];
     tal.forEach(function(t){
-      text(t[1], {x:X(t[0]) + (t[0] === 1 ? 14 : t[0] === -1 ? -14 : 0), y:C + 30, "font-size":22, "text-anchor":"middle", "class":"halo"});
-      text(t[1], {x:C - 12, y:Y(t[0]) + (t[0] === 1 ? -10 : t[0] === -1 ? 26 : 8), "font-size":22, "text-anchor":"end", "class":"halo"});
+      axelText.push(text(t[1], {x:X(t[0]) + (t[0] === 1 ? 12 : t[0] === -1 ? -12 : 0), y:C + 27, "font-size":20, "text-anchor":"middle", "class":"halo"}));
+      axelText.push(text(t[1], {x:C - 10, y:Y(t[0]) + (t[0] === 1 ? -9 : t[0] === -1 ? 23 : 7), "font-size":20, "text-anchor":"end", "class":"halo"}));
     });
-    text("0", {x:C - 12, y:C + 30, "font-size":22, "text-anchor":"end", "class":"halo"});
-    text(kursiv("x"), {x:X(1.22) - 6, y:C - 16, "font-size":28, "text-anchor":"end", "class":"halo"});
-    text(kursiv("y"), {x:C + 16, y:Y(1.22) + 18, "font-size":28, "class":"halo"});
+    axelText.push(text("0", {x:C - 10, y:C + 27, "font-size":20, "text-anchor":"end", "class":"halo"}));
+    axelText.push(text(kursiv("x"), {x:X(1.25) - 4, y:C + 30, "font-size":26, "text-anchor":"end", "class":"halo"}));
+    axelText.push(text(kursiv("y"), {x:C - 14, y:Y(1.25) + 16, "font-size":26, "text-anchor":"end", "class":"halo"}));
 
     // Punkterna
     vis.forEach(function(p){
@@ -459,14 +477,66 @@
     el("circle", {cx:X(c), cy:Y(s), r:11, fill:farg("--text"), stroke:farg("--bg"), "stroke-width":3});
 
     // Vinkelvärdena vid bågarna, ritade sist
+    var boxar = [];
     det.forEach(function(p){
       if (!p[1] || Math.abs(vinkel(p[0])) < 0.5) return;
       // Mitt på bågen, men aldrig så nära x-axeln att talet hamnar på den
-      var g = vinkel(p[0]), r = radie[p[0]] + 30, m = g*GRAD/2;
+      var g = vinkel(p[0]), r = radie[p[0]] + 26, m = g*GRAD/2;
       var sida = (g < 0 ? -1 : 1), am = Math.abs(m), m0 = Math.asin((st.enhet === "rad" ? 26 : 17)/r);
       am = am <= P/2 ? Math.max(am, m0) : Math.min(am, P - m0);
       m = sida*am;
-      vinkelSVG(C + r*Math.cos(m), C - r*Math.sin(m), g, gron);
+      boxar.push(vinkelSVG(C + r*Math.cos(m), C - r*Math.sin(m), g, gron).getBBox());
+    });
+
+    // Etiketterna vid punkterna: (cos(v), sin(v)) = (x, y), i samma färger och
+    // med samma avrundning som tabellen, så att det står vid punkten att dess
+    // koordinater är cos och sin för just den vinkeln. Etiketten är HTML ovanpå
+    // figuren (för π-bråken och de stora parenteserna) och sitter snett utanför
+    // punkten, bort från cirkelns mitt, så att den aldrig hamnar på cirkeln
+    // eller på sträckorna. På en axel avgör punktens typ sidan, så att v och en
+    // spegelbild som sammanfaller med den hamnar på var sin sida. Vid 0° och
+    // 180° skjuts en bred etikett in så att den håller sig inom figurens del av
+    // scenen.
+    etiketter.innerHTML = "";
+    det.forEach(function(p){
+      if (!p[1]) return;
+      var g = vinkel(p[0]), cc = Math.cos(g*GRAD), ss = Math.sin(g*GRAD);
+      var hoger = Math.abs(cc) < 1e-9 ? p[0] !== "y" : cc > 0;
+      var upp = Math.abs(ss) < 1e-9 ? p[0] !== "x" : ss > 0;
+      var stor = vinkelHTML(g).indexOf("frac") >= 0;
+      var vp = stor ? "\uE000" : "(", hp = stor ? "\uE001" : ")";
+      var komma = '<span style="margin-right:.3em">,</span>';
+      var d = document.createElement("div");
+      d.className = "koord m";
+      d.style.textAlign = hoger ? "left" : "right";
+      d.innerHTML = "<div>" + vp + '<span class="cos">' + trigHTML("cos", g) + "</span>" + komma +
+        '<span class="sin">' + trigHTML("sin", g) + "</span>" + hp + "</div>" +
+        "<div>" + rel("=") + '(<span class="cos">' + fyra(cc) + "</span>" + komma +
+        '<span class="sin">' + fyra(ss) + "</span>)</div>";
+      etiketter.appendChild(d);
+      var w = d.offsetWidth, h = d.offsetHeight;
+      var lx = hoger ? X(cc) + 10 : X(cc) - 10 - w;
+      var ly = upp ? Y(ss) - 10 - h : Y(ss) + 10;
+      lx = Math.max(-FIGX + 6, Math.min(PANELX - FIGX - 14 - w, lx));
+      d.style.left = (FIGX + lx) + "px";
+      d.style.top = ly + "px";
+      boxar.push({x:lx, y:ly, width:w, height:h});
+    });
+    // Punkterna själva ska inte heller täcka någon axelsiffra
+    vis.forEach(function(p){
+      if (!p[1]) return;
+      var g = vinkel(p[0]), x = X(Math.cos(g*GRAD)), y = Y(Math.sin(g*GRAD));
+      boxar.push({x:x - 9, y:y - 9, width:18, height:18});
+    });
+    // Axelsiffror som skulle hamna under en koordinat- eller vinkeletikett tas bort
+    axelText.forEach(function(e){
+      var a = e.getBBox();
+      for (var i = 0; i < boxar.length; i++){
+        var b = boxar[i];
+        if (a.x < b.x + b.width + 4 && b.x < a.x + a.width + 4 && a.y < b.y + b.height + 2 && b.y < a.y + a.height + 2){
+          svg.removeChild(e); return;
+        }
+      }
     });
   }
 
@@ -474,7 +544,7 @@
   var drar = false;
   function franPekare(e){
     var b = svg.getBoundingClientRect();
-    var x = (e.clientX - b.left)/b.width*840 - C, y = C - (e.clientY - b.top)/b.height*840;
+    var x = (e.clientX - b.left)/b.width*900 - C, y = C - (e.clientY - b.top)/b.height*900;
     if (Math.hypot(x, y) < 25) return false;
     var g = Math.atan2(y, x)/GRAD;
     if (g < 0) g += 360;
