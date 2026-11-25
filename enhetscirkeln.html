@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sinus och cosinus i enhetscirkeln</title>
+<!--
+  enhetscirkeln.html
+
+  Ersätter GeoGebra-filen med enhetscirkeln: en vinkel v ger en punkt på
+  cirkeln, och punktens x- och y-koordinat är cos v och sin v (blå och röd
+  sträcka).
+
+  Speglingarna har två nivåer. Utan "Vinklar och värden" visar en spegling
+  bara spegelpunkten och den streckade linjen dit, som i förlagan. Med den
+  påslagen får den speglade punkten egen radie, egen vinkel (båge med pil, så
+  att −v syns gå medurs), egna cos- och sin-sträckor i samma färger och en
+  egen rad i tabellen till höger. Raderna står under varandra med
+  likhetstecknen i linje, så att det syns direkt vilka värden som är lika och
+  vilka som bytt tecken:
+    spegling i x-axeln:  vinkeln −v,        cos lika, sin byter tecken
+    spegling i y-axeln:  vinkeln 180° − v,  sin lika, cos byter tecken
+  Själva sambanden står inte utskrivna; det är de eleverna ska se. Raderna
+  har sin plats reserverad även när de är dolda, så att panelen inte hoppar.
+
+  Grader eller radianer. I radianläget visas vinklarna som π-bråk när de är
+  jämna multipler av π/12 (glidaren och punkten snäpper dit), annars med två
+  decimaler, och bågen på enhetscirkeln från (1, 0) till punkten ritas tjock:
+  dess längd är vinkeln i radianer.
+
+  Punkten kan dras runt cirkeln, och ett tryck var som helst i figuren flyttar
+  den dit. Vinkelns värde går att skriva in genom att klicka på det (pi/6,
+  -35, 1.2 och så vidare).
+
+  Hela scenen är 1600 x 900 och skalas som en enhet till fönstret, samma grund
+  som produktregeln.html och sinusparametrar.html. Matten sätts i en inbäddad
+  delmängd av Latin Modern Math (GUST Font License). Delmängden har också
+  den större parentesvarianten parenleft.v4/parenright.v4 på U+E000/U+E001,
+  som används runt argument med bråk.
+-->
+<style>
+  @font-face{font-family:"LMM";src:url(data:font/woff2;base64,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) format("woff2")}
+  :root{
+    --bg:#fbf7f0; --panel:#fffdf9; --text:#2c2521; --svag:#8b7f72;
+    --linje:#4a4038; --tunn:#9c8f80;
+    --rut:#e2d8c9; --rut-fin:#f2ece3;
+    --cos:#2a62a8; --sin:#c2503a; --vinkel:#4a7d32;
+    --knapp:#efe6d8; --knapp-kant:#d8c9b4;
+  }
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+  #scen{
+    position:absolute; left:50%; top:50%; width:1600px; height:900px;
+    transform-origin:0 0; color:var(--text);
+    font-family:"Charter","Iowan Old Style","Georgia","Times New Roman",serif;
+    -webkit-user-select:none; user-select:none;
+  }
+  .varde input{-webkit-user-select:text;user-select:text}
+  .m{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;white-space:nowrap}
+  .m .v{margin-right:.02em}
+  .m .rel{margin:0 .3em}
+  .m .bin{margin:0 .22em}
+  .frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 .08em;line-height:1.15;font-size:.8em}
+  .frac .num{border-bottom:1.5px solid currentColor;padding:0 .15em .04em}
+  .frac .den{padding:.04em .15em 0}
+
+  #fig{position:absolute;left:20px;top:30px;width:840px;height:840px;touch-action:none;cursor:pointer}
+  #fig text{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;fill:var(--text)}
+  #fig .halo{stroke:var(--bg);stroke-width:6px;stroke-linejoin:round;paint-order:stroke}
+
+  /* Panelen är ett enda rutnät, så att likhetstecken och decimalpunkter står
+     i linje genom alla tre tabellraderna. De tomma .fyll-raderna delar lika på
+     det lediga utrymmet, så att panelens över- och underkant ligger i höjd med
+     cirkelns. */
+  #panel{position:absolute;left:910px;top:110px;width:650px;height:680px;display:grid;
+         grid-template-columns:auto auto auto 1fr auto auto auto;
+         grid-template-rows:auto 1fr auto 1fr auto auto 1fr auto auto 1fr auto;align-items:center}
+  #panel > .hel, #panel > .fyll{grid-column:1 / -1}
+
+  #vrad{font-size:46px;height:64px;display:flex;align-items:center;margin:-8px 0 14px}
+  .varde{display:inline-flex;align-items:center;min-width:120px;height:58px;padding:0 10px;
+         border-bottom:2px dashed var(--knapp-kant);cursor:text}
+  .varde input{font:inherit;width:200px;border:none;background:var(--panel);outline:2px solid var(--vinkel);padding:2px 4px}
+
+  button{
+    font:inherit;color:var(--text);background:var(--knapp);border:2px solid var(--knapp-kant);
+    border-radius:8px;cursor:pointer;touch-action:manipulation;
+  }
+  button.på{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .seg{display:flex;margin-top:22px}
+  .seg button{flex:1;height:58px;font-size:27px;border-radius:0}
+  .seg button:first-child{border-radius:8px 0 0 8px}
+  .seg button:last-child{border-radius:0 8px 8px 0;border-left:none}
+
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:36px;margin:0;
+    background:transparent;touch-action:manipulation;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--knapp-kant)}
+  input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--knapp-kant)}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:34px;height:34px;border-radius:50%;margin-top:-13px;
+    background:var(--text);border:5px solid var(--knapp);box-shadow:0 0 0 2px var(--text);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:24px;height:24px;border-radius:50%;
+    background:var(--text);border:5px solid var(--knapp);box-shadow:0 0 0 2px var(--text);
+  }
+
+  #panel .c{font-size:30px;height:52px;display:flex;align-items:center}
+  #panel .uttr, #panel .tal{justify-content:flex-end}
+  #panel .eq{padding:0 .3em}
+  #panel .cos{color:var(--cos)}
+  #panel .sin{color:var(--sin)}
+  #panel .dold{visibility:hidden}
+  .rubrik{display:flex;align-items:center;margin-bottom:8px}
+  .rubrik .info{font-size:30px;margin-left:26px;color:var(--vinkel)}
+  /* Av/på-knapparna: en ruta som bockas i, i stället för en svart knapp,
+     så att påslagna speglingar inte blir de tyngsta föremålen på skärmen */
+  button.vaxel{height:54px;font-size:26px;padding:0 20px 0 14px;display:inline-flex;align-items:center;
+               background:transparent;border-color:transparent}
+  button.vaxel::before{content:"";width:26px;height:26px;margin-right:14px;border:2.5px solid var(--linje);
+               border-radius:5px;box-sizing:border-box;flex:none}
+  button.vaxel.på{background:transparent;color:var(--text);border-color:transparent}
+  button.vaxel.på::before{background:var(--linje) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10.5l4 4 8-9' fill='none' stroke='%23fbf7f0' stroke-width='3'/%3E%3C/svg%3E") center/18px no-repeat}
+  #knInfo{margin-left:-14px}
+  #panel .rubrik{margin-left:-14px}
+</style>
+</head>
+<body>
+<div id="scen">
+  <svg id="fig" viewBox="0 0 840 840" aria-label="Enhetscirkeln"></svg>
+
+  <div id="panel">
+    <div class="hel">
+      <div id="vrad" class="m"><span id="vnamn"></span><span class="varde" id="vvarde"></span></div>
+      <input type="range" id="glid" aria-label="Vinkel">
+      <div class="seg" id="segEnhet"><button data-val="grad">grader</button><button data-val="rad">radianer</button></div>
+    </div>
+
+    <div class="fyll"></div>
+      <div class="c uttr cos" data-r="v" data-f="cos"></div><div class="c m cos eq" data-r="v">=</div><div class="c tal m cos" data-r="v" data-t="cos"></div>
+      <div></div>
+      <div class="c uttr sin" data-r="v" data-f="sin"></div><div class="c m sin eq" data-r="v">=</div><div class="c tal m sin" data-r="v" data-t="sin"></div>
+
+      <div class="fyll"></div>
+      <div class="rubrik hel"><button class="vaxel" id="knX"></button><span class="info m" id="infoX"></span></div>
+      <div class="c uttr cos" data-r="x" data-f="cos"></div><div class="c m cos eq" data-r="x">=</div><div class="c tal m cos" data-r="x" data-t="cos"></div>
+      <div></div>
+      <div class="c uttr sin" data-r="x" data-f="sin"></div><div class="c m sin eq" data-r="x">=</div><div class="c tal m sin" data-r="x" data-t="sin"></div>
+
+      <div class="fyll"></div>
+      <div class="rubrik hel"><button class="vaxel" id="knY"></button><span class="info m" id="infoY"></span></div>
+      <div class="c uttr cos" data-r="y" data-f="cos"></div><div class="c m cos eq" data-r="y">=</div><div class="c tal m cos" data-r="y" data-t="cos"></div>
+      <div></div>
+      <div class="c uttr sin" data-r="y" data-f="sin"></div><div class="c m sin eq" data-r="y">=</div><div class="c tal m sin" data-r="y" data-t="sin"></div>
+
+      <div class="fyll"></div>
+      <div class="hel"><button class="vaxel" id="knInfo"><span>Vinklar och värden</span></button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var P = Math.PI, GRAD = P/180;
+  var C = 420, R = 340;          // cirkelns mitt och radie i figuren
+
+  var scen = document.getElementById("scen");
+  var svg = document.getElementById("fig");
+
+  function skala(){
+    var s = Math.min(window.innerWidth/1600, window.innerHeight/900);
+    scen.style.transform = "translate(" + (-800*s) + "px," + (-450*s) + "px) scale(" + s + ")";
+  }
+  window.addEventListener("resize", skala);
+  skala();
+
+  // ---------- Tillstånd ----------
+  // Vinkeln lagras alltid i grader; radianläget är bara ett annat sätt att visa den.
+  var st = {v:35, enhet:"grad", sx:false, sy:false, info:false};
+
+  // De tre vinklarna: v, speglad i x-axeln och speglad i y-axeln
+  function vinkel(r){ return r === "v" ? st.v : r === "x" ? -st.v : 180 - st.v; }
+
+  // ---------- Tal och matte ----------
+  function fmt(x, dec){
+    var s = x.toFixed(dec);
+    if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, "");
+    if (s === "-0") s = "0";
+    return s;
+  }
+  function minus(s){ return s.replace(/-/g, "−"); }
+  function fyra(x){ if (Math.abs(x) < 5e-5) x = 0; return minus(x.toFixed(4)); }
+  // x = (p/q)·π med litet q, annars null
+  function piBrak(x){
+    var qs = [1, 2, 3, 4, 6, 12];
+    for (var i = 0; i < qs.length; i++){
+      var p = x/P*qs[i], r = Math.round(p);
+      if (r !== 0 && Math.abs(p - r) < 1e-9) return {p:r, q:qs[i]};
+    }
+    return null;
+  }
+  var KOD = {v:0x1D463, x:0x1D465, y:0x1D466};
+  var PI = String.fromCodePoint(0x1D70B);
+  function kursiv(c){ return String.fromCodePoint(KOD[c]); }
+  function I(c){ return '<span class="v">' + kursiv(c) + '</span>'; }
+  function op(c){ return '<span class="bin">' + c + '</span>'; }
+  function rel(c){ return '<span class="rel">' + c + '</span>'; }
+  function piHTML(p, q){
+    var n = (p === 1 ? "" : p) + PI;
+    return q === 1 ? n : '<span class="frac"><span class="num">' + n + '</span><span class="den">' + q + '</span></span>';
+  }
+  // En vinkel i grader, skriven i den enhet som visas
+  function vinkelHTML(g){
+    if (st.enhet === "grad") return minus(fmt(g, 1)) + "°";
+    var r = g*GRAD;
+    if (fmt(r, 2) === "0" && !piBrak(Math.abs(r))) return "0";
+    var b = piBrak(Math.abs(r));
+    return b ? (r < 0 ? "−" : "") + piHTML(b.p, b.q) : minus(fmt(r, 2));
+  }
+  function vinkelText(g){
+    if (st.enhet === "grad") return minus(fmt(g, 1));
+    var r = g*GRAD, b = piBrak(Math.abs(r));
+    if (b) return (r < 0 ? "−" : "") + (b.p === 1 ? "" : b.p) + "π" + (b.q === 1 ? "" : "/" + b.q);
+    return minus(fmt(r, 4));
+  }
+  // Tolkar inskrivna värden: decimalpunkt eller komma, −, °, och π-uttryck
+  // som "pi/2" eller "-2π/3". I gradläge betyder π 180°. Svar i grader.
+  function tolka(s){
+    s = s.trim().replace(/−/g, "-").replace(/,/g, ".").replace(/°/g, "").replace(/π/g, "pi").replace(/\s+/g, "");
+    var m = /^([+-]?)(\d*\.?\d*)(pi)?(?:\/(\d*\.?\d+))?$/.exec(s);
+    if (!m || (m[2] === "" && !m[3]) || m[2] === ".") return null;
+    var x = (m[2] === "" ? 1 : parseFloat(m[2]));
+    if (m[3]) x *= st.enhet === "grad" ? 180 : P;
+    if (m[4]) x /= parseFloat(m[4]);
+    if (!isFinite(x)) return null;
+    if (m[1] === "-") x = -x;
+    if (st.enhet === "rad") x /= GRAD;
+    return Math.max(-360, Math.min(360, x));
+  }
+  // Snäpp till hela grader, eller i radianläget till hundradelar och till
+  // jämna multipler av π/12 när man är så nära att det inte går att se.
+  function snapp(g){
+    if (st.enhet === "grad") return Math.round(g);
+    var r = Math.round(g*GRAD*100)/100, k = Math.round(r/(P/12));
+    if (Math.abs(r - k*P/12) < 0.0051) return k*15;
+    return r/GRAD;
+  }
+
+  // ---------- Panelen ----------
+  var glid = document.getElementById("glid");
+  var vvarde = document.getElementById("vvarde");
+  document.getElementById("vnamn").innerHTML = I("v") + rel("=");
+  document.getElementById("knX").innerHTML = '<span>Spegling i <span class="m">' + kursiv("x") + "</span>-axeln</span>";
+  document.getElementById("knY").innerHTML = '<span>Spegling i <span class="m">' + kursiv("y") + "</span>-axeln</span>";
+
+  function stallGlidare(){
+    if (st.enhet === "grad"){ glid.min = 0; glid.max = 360; glid.step = 1; glid.value = st.v; }
+    else { glid.min = 0; glid.max = 6.28; glid.step = 0.01; glid.value = st.v*GRAD; }
+  }
+  glid.addEventListener("input", function(){
+    var x = parseFloat(glid.value);
+    st.v = snapp(st.enhet === "grad" ? x : x/GRAD);
+    uppdatera(false);
+  });
+
+  vvarde.addEventListener("click", function(){
+    if (vvarde.querySelector("input")) return;
+    var inp = document.createElement("input");
+    inp.value = vinkelText(st.v);
+    vvarde.innerHTML = "";
+    vvarde.appendChild(inp);
+    inp.focus(); inp.select();
+    var avbryt = false;
+    inp.addEventListener("keydown", function(e){
+      if (e.key === "Enter") inp.blur();
+      else if (e.key === "Escape"){ avbryt = true; inp.blur(); }
+    });
+    inp.addEventListener("blur", function(){
+      var x = avbryt ? null : tolka(inp.value);
+      if (x !== null) st.v = x;
+      vvarde.innerHTML = "";
+      uppdatera(true);
+    });
+  });
+
+  document.getElementById("segEnhet").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    st.enhet = b.getAttribute("data-val");
+    uppdatera(true);
+  });
+  document.getElementById("knX").addEventListener("click", function(){ st.sx = !st.sx; uppdatera(false); });
+  document.getElementById("knY").addEventListener("click", function(){ st.sy = !st.sy; uppdatera(false); });
+  document.getElementById("knInfo").addEventListener("click", function(){ st.info = !st.info; uppdatera(false); });
+
+  var celler = document.querySelectorAll("#panel .c");
+  function uppdatera(glidareOcksa){
+    if (glidareOcksa) stallGlidare();
+    Array.prototype.forEach.call(document.querySelectorAll("#segEnhet button"), function(b){
+      b.classList.toggle("på", b.getAttribute("data-val") === st.enhet);
+    });
+    document.getElementById("knX").classList.toggle("på", st.sx);
+    document.getElementById("knY").classList.toggle("på", st.sy);
+    document.getElementById("knInfo").classList.toggle("på", st.info);
+    if (!vvarde.querySelector("input")) vvarde.innerHTML = vinkelHTML(st.v);
+
+    var syns = {v:true, x:st.sx && st.info, y:st.sy && st.info};
+    Array.prototype.forEach.call(celler, function(e){
+      var r = e.getAttribute("data-r"), g = vinkel(r), f = e.getAttribute("data-f"), t = e.getAttribute("data-t");
+      // Står ett bråk i argumentet används typsnittets större parentes
+      // (parenleft.v4, lagd på U+E000/E001 i delmängden), så att den täcker bråket
+      // som \left( \right) i TeX.
+      if (f){
+        var arg = vinkelHTML(g), stor = arg.indexOf("frac") >= 0;
+        e.innerHTML = '<span class="m">' + f + (stor ? "\uE000" : "(") + arg + (stor ? "\uE001" : ")") + "</span>";
+      }
+      if (t) e.textContent = fyra(t === "cos" ? Math.cos(g*GRAD) : Math.sin(g*GRAD));
+      e.classList.toggle("dold", !syns[r]);
+    });
+    var tre = st.enhet === "grad" ? "180°" : PI;
+    document.getElementById("infoX").innerHTML = syns.x ? "−" + I("v") + rel("=") + vinkelHTML(-st.v) : "";
+    document.getElementById("infoY").innerHTML = syns.y ? tre + op("−") + I("v") + rel("=") + vinkelHTML(180 - st.v) : "";
+    rita();
+  }
+
+  // ---------- Figuren ----------
+  function X(x){ return C + R*x; }
+  function Y(y){ return C - R*y; }
+  function el(namn, attr, foralder){
+    var e = document.createElementNS(NS, namn);
+    for (var k in attr) e.setAttribute(k, attr[k]);
+    (foralder || svg).appendChild(e);
+    return e;
+  }
+  function text(str, attr, foralder){
+    var t = el("text", attr, foralder);
+    t.textContent = str;
+    return t;
+  }
+  function farg(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  // Båge med radien r (bildpunkter) från 0 till g grader, som punktlista
+  function bage(r, g){
+    var n = Math.max(2, Math.ceil(Math.abs(g)/2)), d = "";
+    for (var i = 0; i <= n; i++){
+      var a = g*GRAD*i/n;
+      d += (i ? "L" : "M") + (C + r*Math.cos(a)).toFixed(2) + " " + (C - r*Math.sin(a)).toFixed(2);
+    }
+    return d;
+  }
+  // Pilspets i bågens slut, riktad i omloppsriktningen
+  function pil(r, g, fargen){
+    if (Math.abs(g)*GRAD*r < 22) return;
+    var a = g*GRAD, s = g < 0 ? -1 : 1;
+    var ex = C + r*Math.cos(a), ey = C - r*Math.sin(a);
+    var tx = -s*Math.sin(a), ty = -s*Math.cos(a);       // tangent i bildkoordinater
+    var nx = Math.cos(a), ny = -Math.sin(a);              // radiellt utåt
+    var bx = ex - 15*tx, by = ey - 15*ty;
+    el("path", {d:"M" + ex + " " + ey + "L" + (bx + 6.5*nx) + " " + (by + 6.5*ny) + "L" + (bx - 6.5*nx) + " " + (by - 6.5*ny) + "Z", fill:fargen});
+  }
+  // Vinkelns värde som text i figuren: grader, π-bråk eller decimaltal
+  function vinkelSVG(x, y, g, fargen){
+    var attr = {"text-anchor":"middle", "class":"halo", style:"fill:" + fargen};
+    function t(s, xx, yy, fs, anc){ var a = Object.assign({}, attr, {x:xx, y:yy, "font-size":fs}); if (anc) a["text-anchor"] = anc; return text(s, a); }
+    if (st.enhet === "grad"){ t(minus(fmt(g, 1)) + "°", x, y + 8, 24); return; }
+    var r = g*GRAD, b = piBrak(Math.abs(r));
+    if (!b){ t(minus(fmt(r, 2)), x, y + 8, 24); return; }
+    var tal = (b.p === 1 ? "" : b.p) + PI;
+    if (b.q === 1){ t((r < 0 ? "−" : "") + tal, x, y + 8, 24); return; }
+    var t1 = t(tal, x, y - 4, 20);
+    var bred = Math.max(t1.getComputedTextLength(), 12) + 4;
+    if (r < 0) t("−", x - bred/2 - 3, y + 8, 24, "end");
+    el("rect", {x:x - bred/2 - 2, y:y - 1, width:bred + 4, height:4, fill:farg("--bg")});
+    el("line", {x1:x - bred/2, x2:x + bred/2, y1:y + 1, y2:y + 1, stroke:fargen, "stroke-width":1.4});
+    t(String(b.q), x, y + 20, 20);
+  }
+
+  function rita(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var lin = farg("--linje"), gron = farg("--vinkel"), bla = farg("--cos"), rod = farg("--sin");
+    var i, u;
+
+    // Rutnät: tiondelar fint, halvor grövre
+    for (i = -12; i <= 12; i++){
+      if (i === 0) continue;
+      u = i/10;
+      var grov = i % 5 === 0;
+      var a = {stroke:farg(grov ? "--rut" : "--rut-fin"), "stroke-width":grov ? 1.3 : 1};
+      el("line", Object.assign({x1:X(u), x2:X(u), y1:Y(1.2), y2:Y(-1.2)}, a));
+      el("line", Object.assign({x1:X(-1.2), x2:X(1.2), y1:Y(u), y2:Y(u)}, a));
+    }
+    // Axlar med pilar
+    el("line", {x1:X(-1.22), x2:X(1.2), y1:C, y2:C, stroke:lin, "stroke-width":2});
+    el("path", {d:"M" + X(1.22) + " " + C + "l-15 -6.5v13z", fill:lin});
+    el("line", {x1:C, x2:C, y1:Y(-1.22), y2:Y(1.2), stroke:lin, "stroke-width":2});
+    el("path", {d:"M" + C + " " + Y(1.22) + "l-6.5 15h13z", fill:lin});
+
+    // Cirkeln
+    el("circle", {cx:C, cy:C, r:R, fill:"none", stroke:lin, "stroke-width":2.5});
+
+    // Radianläget: bågen på enhetscirkeln, vars längd är vinkeln
+    if (st.enhet === "rad" && Math.abs(st.v) > 0.01)
+      el("path", {d:bage(R, st.v), fill:"none", stroke:gron, "stroke-width":9, "stroke-opacity":0.4, "stroke-linecap":"round"});
+
+    // vis: punkterna som syns. det: de som får egen vinkel, radie och egna
+    // sträckor, vilket de speglade bara får med "Vinklar och värden" påslaget.
+    var vis = [["v", true], ["x", st.sx], ["y", st.sy]];
+    var det = [["v", true], ["x", st.sx && st.info], ["y", st.sy && st.info]];
+    var radie = {v:60, x:120, y:180};   // 60 bildpunkter mellan bågarna ger plats åt ett π-bråk
+
+    // Vinklarna: v som fylld sektor, de speglade som bågar
+    det.forEach(function(p){
+      if (!p[1]) return;
+      var g = vinkel(p[0]), r = radie[p[0]];
+      if (p[0] === "v")
+        el("path", {d:"M" + C + " " + C + "L" + bage(r, g).slice(1) + "Z", fill:gron, "fill-opacity":0.16});
+      el("path", {d:bage(r, g), fill:"none", stroke:gron, "stroke-width":p[0] === "v" ? 2.4 : 2});
+      pil(r, g, gron);
+    });
+
+    var c = Math.cos(st.v*GRAD), s = Math.sin(st.v*GRAD);
+    // Speglingslinjerna mellan punkten och dess spegelbild
+    var streck = {stroke:farg("--tunn"), "stroke-width":1.8, "stroke-dasharray":"7 6"};
+    if (st.sx) el("line", Object.assign({x1:X(c), x2:X(c), y1:Y(s), y2:Y(-s)}, streck));
+    if (st.sy) el("line", Object.assign({x1:X(c), x2:X(-c), y1:Y(s), y2:Y(s)}, streck));
+
+    // Radier: de speglade först, v ovanpå
+    det.slice().reverse().forEach(function(p){
+      if (!p[1]) return;
+      var g = vinkel(p[0]);
+      el("line", {x1:C, y1:C, x2:X(Math.cos(g*GRAD)), y2:Y(Math.sin(g*GRAD)),
+        stroke:p[0] === "v" ? farg("--text") : farg("--tunn"), "stroke-width":p[0] === "v" ? 3 : 2});
+    });
+    // cos- och sin-sträckorna, de speglade först och lite smalare
+    det.slice().reverse().forEach(function(p){
+      if (!p[1]) return;
+      var g = vinkel(p[0]), cc = Math.cos(g*GRAD), ss = Math.sin(g*GRAD), b = p[0] === "v" ? 4 : 3;
+      el("line", {x1:C, y1:C, x2:X(cc), y2:C, stroke:bla, "stroke-width":b, "stroke-dasharray":"11 7"});
+      el("line", {x1:X(cc), y1:C, x2:X(cc), y2:Y(ss), stroke:rod, "stroke-width":b, "stroke-dasharray":"11 7"});
+    });
+
+    // Siffror på axlarna
+    var tal = [[-1, "−1"], [-0.5, "−0.5"], [0.5, "0.5"], [1, "1"]];
+    tal.forEach(function(t){
+      text(t[1], {x:X(t[0]) + (t[0] === 1 ? 14 : t[0] === -1 ? -14 : 0), y:C + 30, "font-size":22, "text-anchor":"middle", "class":"halo"});
+      text(t[1], {x:C - 12, y:Y(t[0]) + (t[0] === 1 ? -10 : t[0] === -1 ? 26 : 8), "font-size":22, "text-anchor":"end", "class":"halo"});
+    });
+    text("0", {x:C - 12, y:C + 30, "font-size":22, "text-anchor":"end", "class":"halo"});
+    text(kursiv("x"), {x:X(1.22) - 6, y:C - 16, "font-size":28, "text-anchor":"end", "class":"halo"});
+    text(kursiv("y"), {x:C + 16, y:Y(1.22) + 18, "font-size":28, "class":"halo"});
+
+    // Punkterna
+    vis.forEach(function(p){
+      if (!p[1] || p[0] === "v") return;
+      var g = vinkel(p[0]);
+      el("circle", {cx:X(Math.cos(g*GRAD)), cy:Y(Math.sin(g*GRAD)), r:7, fill:lin, stroke:farg("--bg"), "stroke-width":2});
+    });
+    el("circle", {cx:X(c), cy:Y(s), r:11, fill:farg("--text"), stroke:farg("--bg"), "stroke-width":3});
+
+    // Vinkelvärdena vid bågarna, ritade sist
+    det.forEach(function(p){
+      if (!p[1] || Math.abs(vinkel(p[0])) < 0.5) return;
+      // Mitt på bågen, men aldrig så nära x-axeln att talet hamnar på den
+      var g = vinkel(p[0]), r = radie[p[0]] + 30, m = g*GRAD/2;
+      var sida = (g < 0 ? -1 : 1), am = Math.abs(m), m0 = Math.asin((st.enhet === "rad" ? 26 : 17)/r);
+      am = am <= P/2 ? Math.max(am, m0) : Math.min(am, P - m0);
+      m = sida*am;
+      vinkelSVG(C + r*Math.cos(m), C - r*Math.sin(m), g, gron);
+    });
+  }
+
+  // ---------- Dra punkten ----------
+  var drar = false;
+  function franPekare(e){
+    var b = svg.getBoundingClientRect();
+    var x = (e.clientX - b.left)/b.width*840 - C, y = C - (e.clientY - b.top)/b.height*840;
+    if (Math.hypot(x, y) < 25) return false;
+    var g = Math.atan2(y, x)/GRAD;
+    if (g < 0) g += 360;
+    g = snapp(g);
+    if (g >= 360) g -= 360;
+    st.v = g;
+    glid.value = st.enhet === "grad" ? g : g*GRAD;
+    uppdatera(false);
+    return true;
+  }
+  svg.addEventListener("pointerdown", function(e){
+    if (franPekare(e)){ drar = true; svg.setPointerCapture(e.pointerId); }
+  });
+  svg.addEventListener("pointermove", function(e){ if (drar) franPekare(e); });
+  function slapp(){ drar = false; }
+  svg.addEventListener("pointerup", slapp);
+  svg.addEventListener("pointercancel", slapp);
+
+  uppdatera(true);
+  if (document.fonts) document.fonts.ready.then(function(){ rita(); });
+})();
+</script>
+</body>
+</html>
