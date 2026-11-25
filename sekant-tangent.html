@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Från sekant till tangent</title>
+<!--
+  sekant-tangent.html
+
+  En sekant genom (a, f(a)) och (a+h, f(a+h)). Den blå punkten dras längs
+  kurvan, och knappen "Låt h → 0" krymper h mot 0.001 med jämn takt i
+  logaritmisk skala, så att varje tiopotens tar lika lång tid. Den svarta
+  punkten går också att dra, då följer h med. Rutan f′(a) visar tangenten,
+  gränsvärdet och derivatans värde i a.
+
+  Förlagan är en GeoGebra-fil. Funktionen är ett tredjegradspolynom anpassat
+  efter den: f(4.4) = 2.5, f′(4.4) = 0, f(3.7) = 2.163, f′(3.7) = 0.937.
+
+  Hela scenen är 1600 x 900 och skalas som en enhet till fönstret, som i
+  produktregeln.html. Axlarna har samma skala i x och y, så att lutningen
+  syns som den vinkel den är.
+
+  Funktionsvärdena i sekantens bråk visas med så många decimaler att
+  skillnaden f(a+h) − f(a) alltid har ungefär tre värdesiffror. Med tre fasta
+  decimaler blir täljaren 0.002 vid h = 0.001, och bråket ser då ut att bli 2.
+-->
+<style>
+  /* Delmängd av Latin Modern Math (GUST Font License), inbäddad så att matten
+     ser likadan ut på varje dator och projektor. */
+  @font-face{font-family:"LMM";src:url(data:font/woff2;base64,d09GMk9UVE8AADWoAAwAAAAASuAAADVbAAH1gQAAAAAAAAAAAAAAAAAAAAAAAAAADYGFRRoWGxAcGgZgAIJUATYCJAOEAAQGBYVOByAbBkpFB2JwHoDezR/aJaJys0nzf53AjSHYz9Q6D6hjWKZZDdorqoT4UzSW+gk8I2Y0ilI0FZQ5yKcvO3o/vdop6NdFa7cHxqBRqx2he3gPsDlMfCM8Ho8NSoWnOkKTU7T+QNv8dwVHtJhICQbagGI3ZmAv21m5sQ4X7SLTRYc4/5//Pz/n9yvDhGTumX8/5JQ+T6qBihhURKkJqWEa8LIrFGsd8hqkF61QMWgpFaVOTakotk/Y6Rse+b9nd9t/pyjIE0ko59BTzv//b2rfyspyfN4Mp2d+qx4RN0KYnDaQLKyqXSiVSkwW2DLKnLbjxE4aiB/gdY96zeRcVsnIHyQlcA8ANkUIlJzeDTZRz60R9O/brP8ZP/WWL9VbekykVSMGJASCB7lIIKLnqX81W5ltf9FT+N+/Mw1dPYfg+lMuI4Zxp3fDoK02mSphBxiKDgCc5zlK/96m2f6vNXzBAcvhY+qpC1CVOpk+7eqvZO/b1Z5XZnmNspORDiWFZDmgAEKZFkHSoWTGWweZqyvT14RFXaWKDZvmCIirA3ekuD7/DubleWYdomAy//dmaUbXDkGsiHhz9/FpaQRwFBAEsYy+Mn9rEo34kuBXGNHEB7qbyQ9M/ogpADUFYiZLvD8fbBcT/7dO9Isp4vwQsd4RfUrOeZGbit8XxAO7AgJUYIGAFQklZ150gkSIo5cpX4kqw401WZ0W08y20HIbdDvoOJwBjJ6syZ6cHScvNG15oVnpdYmRGYVRS2m8TBRZWl4yBmOK1pqxmSkzY+bMgllqVnpDYmRGYVRGY3TG2IGJCak6TlLwJ1bm+u83cGpnVnAuPNDS3juTjGzd5jn1VikQ/jQRx38r2NMP3PufHyvgDmCGfgHbp+polvyCSxnlzsgY5N44ZACX/lvyJVlyGY4EJrWv8gg+bUuz0qR+oRk0+ifwE5uVAKNwrJ/3x8flLf3CLAhBIwWf2FMYj4wOh+lUVHmWaE4B/s1mCf4LVhTWM8osWnZIkH7tNeGhBQEBhILmY/YSSlQdptXav6zGoE6zANdrQeeeziH0D5uIVV7XXPn4YQII4Wl1up1C4jeloPo41Mrf8t/4/ud138+v8OY/plO3cT0JwwpPKmglzRyPYtJJuY36zDvnw34syT7d7+NzW+T2E/7XGqdQpySnLKcXznrnqc6LnH2cs52/82vruulm6cq4MwdezB/xOrOaTbY1OdKk0mWOy2WXD03/27RT0+lNL/zi86vbr/1+nfRrya9c5b+5/tbzt5G/zfmt6nfT7w/+WPDH7T+D/ur61w9xX4Nrs9+bxTff3mJBi5CWo1q+aRXSWmodaRxkLHW1uK1s07/N/1S8raFt57bj2y5sG0q3a9GqWnTX6k0NARVfnscwveiq+ev2rF+vkNodnjpoz5ONA3IrAD9UXY7SwbaHNpNkmuD9sa1i7Y3yh7ZjWNFLm0tIR6e0XMZqhjaNHuaZWx4fNlMJ6TQH21K4akYgPI4q7VcJBJt6ZxyJ3Q9vnyeNPWR7ZKOiBqDBsps29KM/JITUl05R/361xtr2sB60ut/CMI+VRrfdGIyYUBT6kNbYANojiaIwjB5spt1CBGpQtegJnoJ+HX6sbd8RR4KnDoRpxYIe8z9DIhvNeYw8iMaDf9lUr7z6C2dQkLx847YziZo6n4wshWf3nGma+6bLZioAuNq9iJ/bFV70PCHKIyCO8GtH5Oq7veRTU/I8D59/dZfw3nTs+N07Cevwyy9BZxjeSMWcMabaWhwiOuq6Jc1drF/eIvkkDcQb60bH4/nCvTHNRYtJHrqWdUJeJ61n+QuddXO3vom/ku+cGIGRd45di9TiXofMht4j4EPkhQ7lDUBOueclJLDeuvyMj2Ssfv0dUf8qSzFj9HJqZ/lllhpHfg9+iVLze7HF4crw+zYXCW6ny3n7L8aUO3gf09mlJTtqhgXAoKG9iEbWlr73766+yvAc7EDr3qUfHzzdreMJLJYNjTZK72dc9JSoIbQB2Px2P/xQNJ9Fwlhslq2mosKgZ/bHyp+bPyzZq7yj8lLzRySRnDpoK8n/PfgxSfYrb9gkuCTaVvL82AazifFivN02xCsUlE8nqM34xsZ1Cpg6j2d7zo5CpNspCTd92nNEfqX+WozA9mOkLrr4wBO4Ssf7nx867vbSbj0sNO7Wzmg7t1V73q0quIxzT8d+hRdxcaox+uC1F0JO4hPYWFVeIu8dCd8dsyqLy1hdFMa+sNx8YPbp8avJ2qsy2VHoFUZ9u7vPeuVPCWso0/NDldo6PgT6ffYFOmbydFvGJfB9F1bwbLW+spS6KyxOTcfl+mqjRDJVnTpRGZ+xQWGzqIrKRx4Ox3yLNJnnGmCajZh/9n53RVGhQncbgYikkG30nhaUb3Fwppcm8+cKHp5tU2Im0E1CK7ahRhy7UaZVkeDLXEQLG2QjcBM3iKA4xL8FblwzGqJ5KuvyARu+sgAibp1AQTLP7gp1eFU7OCMbcdQyBxHjQzR1pyve7wVyWofDA1q9y2vE7RF7uFvzR4Asrt+NWtkUGwoTENQHniS0u62lxVF1mN/yNAfsrmFH2oROz5LTs+oQZ6fH9Ew30Qv5CS2OBpNWNvQGvRjGEAyLMQpmWlhcr94xktDMCMk4Ob9ZEPnttgoY1Si5rTslgthoKxaVjlz3PsgctTRZeZs6Sm2DoOY3VUWRAUCRMIjbh2d5PgwhQqAY3aNbzzzJaKFMK5G8TJXOllXGDUjWClr2amfZnDMUFnq70Mbyg+zSlO0ipThcXXd+7P0sjywj1cHn2ZzCdlGMWwqP3c8cvjfvU59dCzGLO2eKJ7yGd69DPxisnT486EjfuwGnkM7CE8nptysP6k/haeq9zQUG46FtcuDY5NVZZDCXJe+Y1/EGLmITV30rccbYnpoF5eNq795DaVNwE8aSbARla3uyDUducxA+WcWrs0tCeoMXZ9w+KF3cuDFnwQtg6szARSzlyL7YLReCL+m9TDsK1ZfRRBMvoyaU9ECqYr9+fdtU73Rdb9EBb2uizpSBMPV2jDvhzI14ztavYAAoxv7/g6gvej0gXnEWfyKk3PqY2CQe/ULXKadRjdYCE7neHMdFgwhBSl9ZaazhdUx9G/pAv1n9p44DSudg4fqP5TkS1EA2+uX8jmFQlCP11IV4Zwnid/3o9T84qEbg63wBghWe/vZhy0wtJ/gve+0hPE1Pu5W3Mw6aMGiVxS5+MJEqLtwFj1NOXQ3WMYEL5+E0RIjzZ3JiqtLXpJZ0TmzDITkljJDZiyh31JHb6/5r/OJTJHpqTW50AdyKchcL3eUUxqjodEI6J/i5U+9HIRIi+8C7v0hYrGXW5Pjm1TwEvqq4ijyXAaOfiwIBjmGic+kgq7Llhq+ql4vhjzh/047D6hImrRXLmBBIubdziPhSnX+lGVoeoTZjbZ4mtP+4RuhxTIgii4Lu9Nc7lWjiPt5gykCBIuPebwRhCvL9ZQ4wy2W4Rp0VEHI2vQsagu7kAQS4hW57snsMaWS86WRL9QCgSDj6eTrsgtAKccmgqJphRRorz2IJ2bt9JFJSGKyDw+y5gs6U1AyCOxaWgy9sllTJAvHGLcOymUxflh/k2pmvVbZFPIfk6Y8Q5FD+07YhL3v2ejO7s6SalRwc/ZY3mgpQrCi47RNh4Qgo3WalYF8nzgJ34hluH0y6UkeI26s/x+zxd3mp10vm+Pquk5fIjDYUchRXgHziTQNiRz4wyxxv9Cx1gTlY7yuLs5luDVMQ12PDvS18BjE8VfnTa4hgFuXf0Z6DWEOSZGOi/9bzPyvd28qtvuzlN7aLSUVLpdaA2CYGPXHyBt8uibFjc8TcCAa8xlMIgrDUYpxe0oVsviOJtdZG4p7ZL2DGz53RwAX1gm9FS4demr5MaINUSQ1AQZIuIj3ixDtLTndNR2tndC0kztNPQoBCkW3mwKSddP2TTeBVdxrzS7hK1V3Pd3btO6SjHoKU7GTaChpa1iH+ZtKa81PgkLb5j5hzYhBHnv1TUr9qKH4X2uT9qVkOiPuPel6pV0WULl2bfJi7e/VWj1H+JvN9oQ4ZvHq5h8flZxxUVDZfbBFyHlTn9LREzCBXzsfeeCG9pYh1JW9/XY1lgkGPH9CrSN3QVT8Vkr35bDFbK+AtxLy9bRC3S5iYTK+RVyfVXD5vEhUMy4pSBd6wr28xWj4XNvrFJvPLbyx6YUAh2BBhSK5TtUvvlW276UMgg+qGljdOmoQLmMcKWslGfmEsWMMsRo9EswFBm0KGXGZ674gTm2dLFt2vMiUmFPB3I0KpiReJwd0kXrn5fYbmbnjsZr3btRVBiqq+odSfUWXwvDJZthSfF6dwfcyQdstfR+fS7zzDyJxsi+w40kaS0ap7GVRlq8BXbStRZpW25GaLwGRtR/dXElq9yfvAzdTO8urkP+Li/z1/TYNJ7a9qxeIqciK8uJ6ovNNPvy+WyM3sgc8pZWvhSTDE8AswmOsnhIzfNU7CePLsDEInEIQZ4wo1wPjHbtdylJ1I1jFJvLFfmi5SN0k2pxgt2hI/TLmt3MpgIy7aeJ+KK9vK8UaxhsGwopbxVFHNPOohZhDyw1LY9G6GcwZjTkCE0pzo56IcQzCAW/j64o4+HUBLcTSHJ6KRBjsooYMtgomy+eaYLqNW4FfDPDa7vyW5iwu+yb7+xrm8d2/M2MEAWrXvSHzyj3SskSyCuWJp0n/rkj2G9HrHX/9IWPiwCwShN3hvbmqtYwE8rv0zYsCWv3yUz4O5/vpi0EYfveQIGZ1MwZxEFDTbbDNk20tkhrnaQZIbOhO8EuHORIeSAp45FvaN1/UZEK/wqs99wrZluHCrRlw81U4Sr+viE+0sycjyU2yuia68xrRmrLeVv7e5Yqp2kfh3r2r8fTdJRh9TbIhSEcW7heCkgy0Lr7S75Nq0hyQ/NgXPJbglUaFoH+bGDjYp5mtPSS41BQ8meOA9lD6G+CPmaK/SmNDkgzg1EUqQQXvu88rjos8HLdo7kTpfIvw4AosvJLi1uPuxfQ624mw/pFMTKrzIM+LzbH+f7n6WCsTFeF1THQaOTrsdRHlRqqCQsJ9K1AtxFpaqYKrv/AJDh0ft+a7TrCkrVCz8AuU1bWmglKufSsjnK37u9i8nvDH86Nz6kPW47IOCKgm9OxzCBieDNNrGZgccYN9rbuIB5utATcfr2xDSMaLr3+2NWHaQxDohka/vGAdbcVGqgzWcX+6RLlaV15iKzmjhrt7qEKnVDhd3VhbtKGcX+WzDI/EGuG9WD7npUPx5oMwz12PGibY2xDvLvzGXCPed7LckfvYN6TCSBpaNiwLJIY24bt4j5jENrapvavk/vfSFL5iZoXMGi+kMb8Yxmq7UsISFcKYacaECNaNohj+7o9N7oB/LYTXf0By/C21ABMkuHeBX7nV6Dmuo7sYilKAtD25OxPhWYJMzuBDSf6vfZaI7aU5ICl7RlYFCzwDMdHwhXEyOjvNnIbXHmic+GW2aWEDB4xEeS3TUXa/dZz7F/Ixt5F6XYRIPH/4YPzNConFerSMl2dPvgzaPMbryq/FW/HP1bSt/L1qRpKMk/ma0xKvGqGttIRH9SsWiGOfswzmxQ5PetlCfrWOZjppoLNbZh32KMO4dY2n85v+et8023LleFY1JpCUVQJQeON5RKiXPoIaW4BJdRPHpeKb56RIbggZQ7iqynKJZLjwACyBBnivtGsQROkBYnf4l+vTo/SCiUHQ9RDjGP5MdjXzxAZlkEQxU39g8dLVYlUQNI8yNxMRR2OgIjlVdVGkJNb5GEjXRgE7715BbMQ817FWfhyQCh8jys7YkDaXW1x3fZlXyQn3/3QfNHThImJ/2ET3s6kgQISheLUjo62fCL5319srS/FPZszrlHwcp7Rltg7PjVVh+urvG49GE2qShuvVvU8VK61ZivFWcxgqdWJNEoDH/fy55HVIgpzzf5Mzl5B4q++H7RPJ/jruOdNO0dn48sf+vBjs4FPOy8VznHfQ3ageboEoK0fe/6ZLgc+p22GC/9xUhyCLh939Byc0Or9uEBRMHINC8hYXPd+F1NGpjNdnObLfbJg18eF759P9d7nUMk966TcieW2cRV1Gc8Y90kiTTSkrzKnxOqR6i559rZKPZ0leOhox67xuzKWhdXtWcavTZeHcNDzGLCftcJkv8tHmKVI41VSL/+S4PoGmS7Gm2pPkLXYQVSXqArv4Klhd4R7EMQxUF134lin4ALJjrEgDcEO5PivZgUt/qGzPbYH8Xa4pWqXnhdKn3RpcZkkye7a245WCxVVfwDLMOhmbxOlM3MFxmSlzkgFrHrAgrmqriJRv5GtGVnS3xI3MkFFaZW4r7sFEYFulyZHDDuvV4nmdhtVFopfPzt+SQKYJQMDNSIX794AsM+2z/71K8LH/6sAvTgzfXE/UB0yO65zxt+EsOTIzSo+MQWmi2oW91eAeUpE0D6V6fnJvmNkMYYeewhwyhRr4RK//+cCLDyUYqKYtSlz9Ls84yW2pnTmn34xP3R0XbC5d2rfGPmVuTvKMukHhN3adT3w/mvfbPZfvW/pn7/4UiCMq+i756VG/KGJoydLkke4IDTkTXYZV8dp6IzVlFMwMahiXCNAcvoXy87kf5xDwuwvxr3TIksm+U+p9Zn7yUOJnoQa92CcodI204w2OCq+1Zsrlh3XwDRSKbmkmQ9hLl2SoHBKDwPH9Xg986fhg7syte8t2Vo9f2qeKby3eMXURDJB5mc35efaYhVoOewIp3R0DUCX/k1RTutsmrsNVdAtZROhOmfpWYkzVJ/P1qg6KWRxNkxIQUI1pDKtemYnUhub0FDrQS5bfnepM/+SnbCQa86g7r/2VIuie4w9wF8jTAOYI/WSfxU5Tut9w4CE9U3PgxsTm7vidV66Ie85Zko9kqPCJVTgE3FvpqHRysPlLvFBdfSfakzARdImGVhFl19dexpMCfmAq6DuPGhfMtI2OdWmDG231i58dXITye6H7AAEtVJ7UqmfYAtMio/QxhrndTYg3rNUS/GJZmrDsclgkbIUOLYxx/knvm1LAc0N5dqSbCILsjo6hilSnxDsx6iiqasj+V4nQTzdLO6vCcRVf6gZbIFm3JnLxjRiQNt+DwEUuulqKRulrEhA8VvIJkQ6/7gpJGrfv4vyEVGbcKtx/u6T7dIFM50wrrr5x/XrnA89QP2B8FyFT682YX3iN0+SfnZKMx9j3J3+B/2EQDJf4+SOJ3gyWZqtpbhXlisuhqrze0onXM7+IzcDVE4tdCJX44zENQNU2UDZ6Lwkl+hPNPwGeyrr1Zkt3T/IV7ohIzvUKV3tb4ipJUA3RvPu60xZLVBRtN0eOxUWuaQxybJTYIDaCsccQ4UNpIScc60LKogKnzCmiu4HFCBXuJ3oNKN4ggNFPzE1rgvqSmo1NXZZKRBVJvS8N+yNB0jFwkpXohoQPRPUSdae41PEV8QFKgUzZO8B/hgashdaAYEdE/pHesE16belDLDbhC4gJQoGWn+HEVRz2NgBA4RsjnH6LXoNpCrRzF0EP0vbf7dP922WJ7U1TRnZKGR7JnoRysWUzzTrtNLMwqmmkgSq0IZI1Q2T82Np/JlesT4ZZMSud6UZRUiFhR6jKYOjNF3xBcuCN1d4fGfW/Ad6KjHwoMhMNmQiYot6FE/JGeDK3pLZCl1rX0lYQy91oc3HVDan5uYCLyy1LKcg70UcmvVD+1HUQYqeLopUfogas6xRbsRwd2+8DpIcBxBj0kG+NSSSRQ2d3xFKn27nSQqxDZEAQzqzCLVCUxXoj9DZRI1igvIxl/F2W3q0eFw9Y5NHkhAtmgyXFJMYOnfrlUj0YHy+YcH5l5I/PkcajQOn6li0/dT05KSs40RovOM9wpijpp6tKtdlxcTExSXPL9c+mT3nS4v5tRl/EF1st0F4xDlVHNyRoNsxeMum9WnOHuLaUtqtPlzggNr56cd8N/pJnK4CQthsyYmnTUvVlwt2BxxeKTd9bhPTFjes4RlTiGvRrjQ83LH0mHYLJRzIa+IvKRtLvBZb9GYx/oHmaLcI1Uhzbj4s0OogV2mhZVxweBiwTJIwz2TZC5Iiro55BASvFZ02R5rc6kklyAAg3RYb8DHd75vtH7cSmfBRCNXDrQ/sZzox4aMmBBW3/Yt6fGz2EN6XSkEq0HNwAiW6RonCRTCPx/b1gxbfOJdVa3ZbtQY5u+m17ZTz8PiifFKtzDEwKwhjhfuONQxZZkk9BLESaG5xTnCAcx9iNuk/rQA4m4veeCo/Zl4+4hHRw4QRF6HB2BiUdjaosD/FimzGAFfB4fQxzxyAZZ3ujYmoJiWvNXZsI51JE/gUmSKaC9hW3d20xtO/wYG3HIQYRdEPaO9bq4OBBFl+O7boTYMKagzOM6JhLvVi+XVy9MXUAVY0MhhULgwx90vYGDNvnEwngxn2nO39W417ahFe0ou7Wif22v3c76BaHcl34qAPL/2qKFxWCld2goHIsK3orLjaHzWULAtXG98FqAOGNwYNqXziheLUpmNkESyIawkZeKf6Q6/ghbOo7sK/M6RL2ACgJyOXyJyhxz8ZiykHyopF9EiI4emHjQxuh8HYVfeaH/FxoL5qBR+z8tGlvELXI8yFzOLC4HncifPDIqE0ZD9OarWyOTSLlvT2pbWTW7dnC7OFzk6vF56SK3EqZ6xUOx/kLjXJufGb4j0IY9wy9gnL8OP3xfIkGfDu48A3o4Czv2BdWsI0x/9wbsM5LBZj+nT1DnoHkxNlbZSDNWqZcu4o3d6MjwI2GNoI/v7Zi+JonWmpYMPWwEzHg0nISGHOK9u3qNw/DINxbE31NMjXEycWmIXnz5pdSWPNLtrD5yG6f997NbvMY03EtU/305Xl9vp529Q9qPy9GY8psgpeKaSxPvGC5Aq+W3aKN0tG0p8fYjn2wOgeBl2QTeuLGflUOUdtnip88LhC5+3HpHjzy781R4nRDzetloKDq81Ge8C8SJLslDc9ppEnumSzNsk1SJhMAbclp/7VM8nCwy+ujF/PxUcxJXEfo2xJHsrVzu+HxFeLOV1wPste4v2RDcAwMrwr0ldND2I42smTFTkakZxrA1XNlXcgswFqnjpQw8xB4TvPMmBLSV6S2JH8QALnQluiYiiAT0EO19IvVax9aUkdLTiuEblQ3VLN9Xzaci5fgUpmAdQRnLB2Kk0e8hussdwKK5Na717waz76uXaS4F3WG+T5ebk16fWr/9XVB2orF3e5HQjLBI7bSiKvarTob6e7+dBc9/zk3HUze6d4qfWbuDG6H0JTr4d2JgEYo/70voIcTp2LHG+ueWkrJjZADg0kBW9Ej+rWapCh+iwDGYTtPTcJy5JyZb7W6oQzyaNLfKzVEfipmyn0GmFBqiF17ZMqIZOrx6f4l5rZ72jv80ydhtb1hU7xKzr/Wqm6ays3N5rOifCq7X8wsL1z82GS5K7VHZF89emr10ASHEPNiDmhB6+qiDnSaBP5gzeRE7GAAxP+AN55BQFzXOSmaZ/pQxR92CN5ezf6RqgUpSAiGoJPczW9i5fUHBf035OHavuulGxZu7shINppmeo/t9R7PcWsg47n5n5VKGZj2oNfnJ1hlE2DS0uuYMS+z97qrwXD+Mow2PMELc1t7OXkcIcV2TXsIS8pFUIzttrfqgu3/Aj2trObRRt7COqJbWIsQbZgyDBj+u/Db3QroSq1TSmbnl2al5GJChSAFRhs9FmyRIinin0NyPgEIsO09l5abGeZlOtU+9J5ymOrr5j7WVcb4HDSQqoYfM/v6y3fE+5qdtkmATnejHwjTXwlFkE9F6bCyw7i7rZc/RKAIrCCEj63qcZNxYXxbnFrdum9Umsr2aOL40yTBbZRsV13aVVoavCNVTGS0p6BpOw+zfOLXut/fszyIDe3+TUNDh+hz2oSRa+D2NVPThxFy9cws7cAAmujx0K0xqT5GEAVcNXfSGmmEEEPN5E7ISaBlZsr2rh7YvdOwsL7/+NmZgHgQPzSk7RFrbJiXyoNSxH/VY9kopjSjDyPoqdBGbZXNwmTGBWOrjsLAnpjS7pal7wt28RI4Y2PENEde2pvshv5hEyxg13r/70F0L/Wt/a6+ScTZIf8Xn2XpWWm8LE7CGwD/m6Ttis1YLmjUpQOhwGJI2+WTr1qUPwlqNl9zHRxIkuc0AiUveQCmyvzcbVINt+mHy9UH6WZA6xDONb+zOLAnP0Vupz+72Gv3sKEIbs333COFpikQfEdu7ABE27HE84/Hx2VBUCxhFVaiAkoK11bszeDs+Z/KwbZL59LEGTxa4RSQkwYM9HHKdm9VXuZ/iSziO+vNgANDUAJ1i2ZKczxdi4Vq56I2iicxhzMkB3AmSDz1M95xsH65bEgwnZ4Z9+xzJ+MaSXQKA6OTQkcprL4y7azgC45l6nTzb0RJ9ytG7UYLwEewG2oJ8HtTUUVRRF0ax1vff2bpkxVBMOr5VoBB7U3tESW/g1OLkIs6i9ySiTVYYZNhk+bGlyQlcWaGYUqTq788e7w8oVMqOQzP5b6EsLfQqrXGjIXeHLbc+f6iS5vS+MpIeUbQqE/XcQ3nMXLYEC61Myuct5qaQQ2QYeMJtnEPVxzjfW0jXOUaWPxrLrzDHbcdTO0vfD51H1dLpVbzepINJOHPBxE2y/Kr1fD0MuBea2yHeeKzDkg03Qe26SEwbxA3wXT7gzpZQoL/7A+YZ0cwufHvxS/SegqyZHBT1ZIOAUpD0nAm8vrIv7cUZFDOXXkEWC87w/lND6zwaFGZ6KcqyL+rxUFM7tqwS1ZUr2/GJ12l6JHq5bo5FTN4rA0abXO7j5k3aPExL2uobQR0wgj3Dz2OCf+3o0d7erQ+Epo2xKz9Ow75vmgMeLgokwW3b/ZHpPhU00QhitHNYfA8PHe42vT54eY3tHVu6Zqnv2Jmbs7hprV/zROwaKiweXLQfFiq4IVOBlq9GOQxEDfvHtLCe9o/BQGzQ9NDFGal1hAa3T0iiZ9933GEVjRk0cF/h6dyDgVLjnMJPHW3IZ5eFyL481hiDiYiUOqbbJJd38JD/OEziWKX3WaDrUJ+Jpqy9NXWqFWylfTIZeO1zC0ub/nUWN32rqPKknl2/i5zVVYOCwfSHmS3ZHVRRpoW/jyeR9k7XR7/GQXn+0fLz3mibYVTxz3vLiu+KNqI4ya6YbHs35olgb8jxKGApPl3AyUhlYB2Xrpjrf7mExunXlNqiPann1u10zmpojGl0TIdly6qVQuXk4fUz1RWOS2IaSglXUfCWtRCVsABJSvkbMIg/5+j3KRcBxNHuFtp3tdM6q05RJCAIIcrurlvEKoNXAR5DlKCij7cYZ0DJCCFBvPTY0UaSw8Pzb46Xa5Qco012OoTeTg0Wp26suA+0Gy00H8r95sHYEh7H9EZunQqeqjBrO0ka4hF8lRn2bVeVqn9vjX68fd2aaDB1eaaWTgxVuEnA3RLUtJ9MS5MALSeTsCHo2xufAqqimNV/XImriKNmx/Wo9o2VYmmrcVwhhx10wQwCt63plUqiQNnnfd4JTRUyX7GmqetQf0g1AgfrzDpQzWkIY4W8IfgoED2i8+gHR/gIyMCtYBUpI2VNUwGzla259BsPQUcGySHiDSO6WmdRN/dFlCUv1uyZ5H/mlUmBle188/DV9HUWv4bXH/c13lHZrl4k9LuaA2LXcdxDKOA7nhQj8QO774/jGsJpNDAbvVx9JTKhWexO/1Kmz/uws/l3QBtRnfa+3UGTMY0zV1ZfADqIarRQGLo1SNIraoWVMugjqzrjryOIUIB4zfH+pj+IOCmntUbXUTe5/rnSZX1N55k3YxiR+ST4siUEBV6SSdT+hi/FFkS++7chL8YF5dtFpY/QNDPAxYAguu0n7jRdHXUEYS9qp50EDxh89wn/uKdcJp8Kiq4Y8dk12Yck4s60ozlgYQ6Hdl/0CHShSy/1iF9yC9h2xyr4oCiGla6V8hWk4bdnT0bNmFtE+lrBBKOTPLpDRHcEl+Ds+vWkzaMFYpjeStDTTCB60RRW1orZepkAl1fq9bffTM1BI1nYDfBnTflttuT81sZwGHWDFGjFBVlp2qYjZ2ZfC2MJGUOmf/WNxdxYg23l+7b6uirbDD5OEyUaXiXxgu9eH4aeihcxTYfOKOYq/P9Rtf3uPbNmKtvavv+7USLLDS72bmOr/XaR/VIb4cOi4fZSYQeVlO7UDxv+nf/x4N/YoX859K8WU9e0gG78238PGSFNNzTNMLzav/2fbXkD8VkvzSOAYQUEBBwESlVokC634C3CRVRIUrYge5BnSB/KQ9VoTKd0LdqDuWIt2A4cwen4HPwWMfrspHhTuihnKE+pIqo3dcxtI3Uv9Q71K+lNTr3fpfnRPnzqKm/7rYbOEMc5gUlIQwp5MI8gmf4UMIXphKkxz8tKdDXKIoc4zYQP17r5rWpDS73SVx2YsvCN2LTl94aG08nVqZ+Tu9Nsp2VO4U67nf90XuIc5nze+ZWuia6jbpruMu/Ix3Fz7rmMdFLXJeldevH9mUyRY5sSfWELFpyBJy2ytDvL0cGQ+srLQyMxX5uQEbw9X7XGX4n84L92e3J58Ucffp0tAi+4RbT5dAAHgqemv1j0JasBC1yAJARP6YKajcOzgttY+aJ+UeB0Cw6i2TNnoggBI83sDxNeXfURzrZdxEYFKhRiRAnU3pNn9v1Y4MfayT6rr67ZwH6f6yXYgeeiLRIvdmy1RevnLACX/5MSIMbbyIyIx24fMn2+uwhjeFvOoXeFhfu5IB1l8bmvPZT9bw6lt3MCfG84SjS0SEhcUPT2w0Xf5R4kKk0/SNBttLc8BDj+FyOoJSh3zDr77vfwsFn2ywodZxbotOW2q2z0KC54aPWNqHAmTZH6EMZAjMZZhOO+sM97H9zEY/Sq01MyD+3oD5kdVZtsh3h7l1suht/X+5g2RAFa7X/zFs/G3HGRsJCU6AjyFW+LQ27wufDr0w1s6K2XW+mJF8wVnxvlcS307mvJ50caWBq8Q5wZ4JJGHG27S/oQYjS+nT0+OopjyBr/fZ4hYq9+MYPsu4ehHwLtgprkGda73fDauHjwwDFMs360fVl9beEoaCmZWqpZzFJ40xNJOfQ5jhKQOYaptIEng2lAaL0DIIYj9DkGbaz5teWkpSzMHwCtEWtF7HA0deyb42V48PyZe1Nz5nkYoGXeO7zbbo3d4xADsiKwYSv2d35OP/Z1gxWXNdzRw2z6tL4LNrGk3sIAXS37pkgsyVhxio1LzxmOZ7ADpfiV2bcDljzXAzTyccqnMI4JvI56JcrRzvawvcZjx+7OT2mQZ+oVueoz+h44CzGNKrPe2CPiDINym13SsRgXYLkKpsrOt5ttB/kxGsIp6Lj213HuBP775oz7HscaOg98iWdz2JvdUK/K8oqb6kn0phcNNEBDNVJzd+GZXPVi8HyTtpBS4QvzDMPcQU2/wjHlXOfAGdGIossVKdaT3D5lxwrhNlhzuwVOBVPAkX2uUg2PoSYTZc2sXVM+hjGM4XHUEqGcC7gYx7h4sxOmnOnsn4DKMNV6msvC1wYwuLZdbuejzWCGCeF39evx0/3H8bTAljuMpiZOL30K3iEGoZLiW1589uAQBCjDYTsqKsY6JBldaD7jNRxOois8ZqxHaOsIYDhIoIjlStlqN4cQ0Or9aHEmTaEdL9d7h/ljYcRjhEEfXX4z2OgKEHqby1d2LBdOwSIwuA715DaWBZLqUjswWA+UnL1EI9JzHOZPS1RKQBeAAm3Lq82tQ/qj83wyrcdAnc/V0wpO5HnRXdqJzRdRSRrSm35YUH2aRdhRZJUC7/cIua5i9QGMW9H9aAgaK9NKBjpD9aWlpvOD06NgD+Zv0xKJCkhyD4CCfsjdsRMJKSylBVlCD9mXI1Cw1CW5z7y/NRcJl/STpA7LQy9oB7xxXhx22Wj9VVw95sfdADd6IEp5BFlqFGYVaBlt7+7Ujqz34iIsgP2GZy8zuydobsi+uL0m25B+M2Lfq2Z9GxDokAn49xvP5iIGqkMSY7XV8m+4QG3NZ0fKVlhu8tNrl5yunx4mGibRWhx8Uxv+jDpoc3b+Uvx/macu4Sn6RJSd5BDSVQzmsb1SpD7MVHY+YH3zoJwFqtuFSdSOjJVRxRgmQE+wxA4fuhBbAj3c/VyBZ8PPXSHHkDAsCCCNQEr1K0UkQG8R79ZW5hj86VdPe2VoySxRjwszK7CGh1YuPQVi6G+Wtq63p9yBywJthx7nscCBbBADkuT8cVpxw/bVxeLEGSDMvtENmkPvMveH69J7i8MPBWe3S87CQWKZZ/w8eNy7/e5FWIObSdPn51cSNqW65HdAAIWj3ctTvgtG2+KSQVa8FqBqo8vlI5vL3wAh7Z8vDM2xQDYu7e1s3h4XY8cOph2Sz5xtD3Lwi0kPbOgie5dbCf/D+sXRz/a/dM4y8a9rr32dLWBH1QpCQgKhmGYpecTxwIKdR0OxVkURPZ7x0qGvjuTX9Ws/l+gxSw0Fz4PdkCxHMpBEIAqRaq+9GWWUHgmYaBLecvmY+au4utLTOQOmbpaBKnETtigQS6VaeXWWFGELFyMF2s20NnUeNTRE0WkjojCQQmTIBtXtg4ZAKjrlmpQVwp3YJ2xe+zh2nIO4M36KMIGbqGOLhHWLmQMwW4owpRgXlEaVznmyk8cYTFXzWoRyVMCLjbLJo3ogYPi8kx+C52EeNQeMYUVDDXE40tM9CmbXkIfD+XIlY3FIYvxYsC7KzGoz69w7YLBCsTFugs8WOXNuVPCDtbNEkVGXZ0LaOA+YYTu8KsWXLmoVtzdmdFvSvAMl1pl0Jiz9X6KPBRle2uVCN2dPt1APbsfJjPjjWaYzLXqa3SrtJzrbIMFBwTomOWEIGHVDw25qBvixLnCwhhxh5d5Tdk462wmPej6vc5jvYBLjhxrM+HokBegzfO64+DYnF4h7z+Rhm3v0bvm9tXmrAjq1ur+rYZlmpnBfmDoBbPARbRVzuPLZ+wpcxWwz3iK2ZV++0ELKvBR6lmftPVZmk8WPfoWDc5PPM9/eWraza3L9sYCNG5TBQXH2ZNassvwyZlHO6A0/iSpihCUO4pCtyPh9F3wZzKB+JsPmiuoCisTSRiBwvd41ruvk50dHlBCmf+UIauHzX8kynwobUu0QsUVC5wTqtD5mFd6TiJYe+MHBgcS7mYBcmp1wQzJE67HI7M8zpXOY47l5HsRPonqckKo01K2p53PLAKJf1oaEFBx3Q0ruKsxUsxUa1cmgFwNb34lU1shjvxpy+pg60V/FBBrKenEmWR4bXQEVYnKgnLUcDNBb93co7tXlEh2HP9oFInE76FKtIc7hVdQJNwfMoiL5x5s/E4/kza3mP13W51Sg5pA9k2EjeEb1wVbmtNNaBdXMo80XBrZ7uMJwAZBzFfYCWzhaUA2cgOE/xxswP8VmTWLhA4RHDtUgW7aITegT8kiTxx+nIhv0s0f/4qBwcHGtsFKYxww05NGWiXlpZhkr0JCOJsZPTfTjeBMPPogn0ehvaOmPVet6DATwQpVsHrcNwxQcDCJU2l5vmmdwWhIGtFbQJdMIrDt8S/OQLVfCWV8gXWjiZeAT4Ets2k/XDxuHn/k6B8fHGtMqXXB8ibh9TSAJozzPjGNMI+13LdWVvCroBqHNKERNrErEsrty4hFL1pR3qiWqIKOQ5W9pXFKqUkO9kFQF+/kx+jjoghp8TUuEkKes3oR8iljq6rfWntffv7z5OtDWLYMBdllLAkRLouI2oEJ7eN3v21icVJLuJtwaoQ4ZZUwrfsyHc6/kt0GzrcGgG3QpyMi2rbHCoswQEo9GhZpLizuqmpdMAaHAvp59jMArF0WpKPocc7ZjJP5VZ8N6RPGyY0YrI7gOCQsNCwwHOyTVo7x+ABmaXV3fzyLvOkLIo/CsM2hgnfoMQcjgEJbP54xsTlrHPHJJZVabxkuoYxwrmen8bCvZBB3F1PlcPpfHPFhieceLec4dyr/08wAMFUYSEvZxpOH15ebY15JXn+CSQYEiCVL3MKq0NumlqD3WQIVnsHxifxDgK4yv4Fu0xoK4hlpu4qWae3mo6V/aZJKbFrCzft/dzHEgYmi43xuxe4QDhSI8xGw78EtcBBeR80ZFLXQeGdQyi+e5friLtcP0degFy1cDXyQEJW2kto6xREkR5HhcUaDE4tN7ZobJVECddf8j/Ok77z1155ATbGkM/xHlcBPsEg0jOyQ03MESv7W6WZt4rd+LtMER51BEEXU75+FNX6TF3lkclhflus8Zcedi/IklLsH4EIQvvw5UbgB0RpewHKYLxcvURcNCuqqtSJE+aGhIonuYjNRBDKsk3i8mpG1pA3HhZIAzOhxWlSINr9vud5P8YBKtZwo79kHNl0KkbT2RWrdRF7OfKS9QV2BiNbNKGOGDJWtjUY7UW2NHtelNd8XkFHRjmzxTUmmQlud2B3o5ugWs9dj6l+WTGMpTUKy9OWVJVDARbgrzYpzDJym/Md1NevD/FEmTHKtkYdHts/euiGtIQ4pyiTFYNUpDg+owRqyqejZnEKbtetXpODWxXFpEE8W+moVgZaeJWeR8KX8CNbGiIWLEhKvEGzZrAAREbhsIfKHpJHQhWxi4RJfkplntbInrxWCgL7dUdGVch38BxrFQYZyy2fLFmUYTVxD6FsQSq41c24WsgeS1v+bGsPdoBRuIYR8y2N+9Z+lobn6pkjGYq7uMT2E+x2Ds/IUnV8MFrKF0J2aJgeHR3coN8VyzPCPXzelmSzQd3pE4aF6qXkVIlHZLOjlaSMk5vWTRz9lTLmwRaXW3qhsyX6glGysYShcEbFsFP3xexTRbyelCnYpmppurcV3RdBjEArHU5mLB4xHd/T/MCWNOc+CQHLgdmVq+sjo+35hGiGEpEKB3wPJF64R2Q2cM1n2D2wq6JuuRx6cr90dNxSebmMfs4SlhiVlbdhkCCMiWSs8y6vcl3iSW2Rc1uVDwR3o2IiaPjAbzwiLZoiteeIkBoLpNojdFP4kJinofHAzcziGaQherHWeHAFC0gQhniwt2GfDxbHEDAl8DEwDFrAq10WSBzjBsCWyWOcs1/atJnkDCyx1HFyIzgTidgHagh6zTgBfyFDyDJppGYA7VQf03qAoBh4qOg/Q/gBkHgpxnvWP8yssJSDe6OWKJw4B7jEkKBEudiBwHYEDvh8NExRr3WHN7DooUq9lcqZeMLZst58tj5GsDAyKQsthxjgaPgefg838GIj397+OLhKc5T949GfRE+3hfXvvwZW45aT/GbJBayb4ekkPAhdgRF2GSKTYT2IBrUEgaNtcSqDVI35RNkz0sgUqD7EtgskH+JDDFIP8QmGqQ/8aCasitJEhHuBhn4kpURQCi/K5vTYcf5zgBv0kG9q4K2193r/wBvPmljsn5wWLySEBHgbmvgMOTn//2unX61sXShiSE4OaQmfEqF0qXX0m70LHpoEozlIMv2dd/dE6oJGIA8ZcYHCzOwV5YdUARwjqNiipoSBgdEgWd1+deKF2/gLSnQdEe7/sf2HUjyDqdUsdjQ8kyiKgoOI3O4FH954GSUysbwQ6gZ9q6ZPeAwpuCS3DhwHdgaRUGWlr6oaPzC3ymNq/LQH8SAUiVLlEOg9xjOVtke4GsJiYCpGJeBuPAPZRLUepCFZJUwI7AVeE23NG/GQSsawL9eoAvMBGXqvcviI85THDsKa7FoRJFqikPHLMV3LMDnEqamveAWz6ANo+Bg4bwSQ7bLB34WZpxqsBlwx1bs8mSr8EpvQPPkKMqOOVK3wZNBrFoAMueQpc5hD7sLjfAee/ArwdtI8BSfCBgodyBfqo7gAq581TGaSDIDwsaiYA8P0aiwEbNRmJAR+UjcXCry0gCrJsrIlCYms9VagMiEYkxgEIiRx6axYNGQygFAlwHGJND6eBILvIFCKYcxAfX2cMK2F2Dtc+gG+x4uyfT2DsU2BO/d/HCwl3pSYwCuQjGG2RuEVbyHY1CQgWmwFbKRJW33RUcADsIb2IV4UHCxyscLSOmEAGoKKiP4le68FCKCSt0NeRyNhMCKY8piDgF0U9LKusrgppC4Mdee7p74JVSYm00NOEJBCriWlIAiB65VmbVWXOIZoILuAjKHSJCCtMBig6U3ymVlB+GytkJsnBtzS0x3CMgNfQhqce4MrMAfMzK0RP7tgfhRtkjXAGYA1mVZdPHQG3gIelwUNBKr3aXkl7ylCE2PVh+YLYBxTq+dy8=) format("woff2")}
+  :root{
+    --bg:#fbf7f0; --panel:#fffdf9; --text:#2c2521; --svag:#8b7f72;
+    --ram:#b9ab98; --rut:#e8e0d4; --rut-tal:#6f655b;
+    --kurva:#8f8a85; --sekant:#6c5fd3; --blå:#2a62c4; --tangent:#2c2521;
+    --hgra:#a99f92;
+    --knapp:#efe6d8; --knapp-kant:#d8c9b4;
+  }
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+  #scen{
+    position:absolute; left:50%; top:50%; width:1600px; height:900px;
+    transform-origin:0 0; color:var(--text);
+    font-family:"Charter","Iowan Old Style","Georgia","Times New Roman",serif;
+  }
+  .m{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;white-space:nowrap}
+  .m .v{margin-right:.02em}
+  .m .vf{margin-right:.06em}
+  .m .rel{margin:0 .3em}
+  .m .bin{margin:0 .22em}
+  .m .prim{margin-left:.02em}
+  .frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 .12em;line-height:1.2}
+  .frac .num{border-bottom:1.5px solid currentColor;padding:0 .2em .06em}
+  .frac .den{padding:.06em .2em 0}
+  .lim{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;margin:0 .2em 0 .1em;padding-top:.55em}
+  .lim .under{font-size:.62em}
+  .t-sek{color:var(--sekant)}
+  .t-bla{color:var(--blå)}
+  .t-pa{color:var(--text)}
+
+  svg{position:absolute;left:0;top:0;width:1600px;height:900px;touch-action:none}
+  svg text{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;fill:var(--text)}
+  svg text.ord{font-family:"Charter","Iowan Old Style","Georgia","Times New Roman",serif}
+
+  /* Rutorna ligger inne i rutnätet: kontrollerna uppe till vänster, där
+     kurvan och linjerna aldrig når, och sekanten nere till höger under krönet. */
+  #vanster{position:absolute;left:100px;top:112px;width:470px;box-sizing:border-box;text-align:left}
+  #hoger{position:absolute;right:60px;bottom:90px;width:500px;box-sizing:border-box}
+  .ruta{
+    padding:20px 18px;background:var(--panel);border:2px solid var(--ram);border-radius:6px;
+  }
+  .ruta{text-align:center}
+  .etikett{font-size:26px;margin:0 0 16px}
+  .etikett.sek{color:var(--sekant)}
+  .etikett .m{font-size:29px}
+  .ekv{font-size:25.5px}
+  .rad{display:flex;align-items:center;justify-content:space-between}
+  .hjalp{font-size:22px;color:var(--svag);margin-top:12px}
+  button{
+    font:inherit;font-size:26px;color:var(--text);cursor:pointer;
+    padding:10px 22px;border-radius:6px;background:var(--knapp);border:2px solid var(--knapp-kant);
+    touch-action:manipulation;
+  }
+  button:hover{border-color:var(--ram)}
+  label.vaxel{display:flex;align-items:center;gap:16px;font-size:32px;cursor:pointer;touch-action:manipulation;user-select:none}
+  label.vaxel input{
+    -webkit-appearance:none;appearance:none;margin:0;width:40px;height:40px;border-radius:6px;
+    border:2.5px solid var(--rut-tal);background:var(--panel);cursor:pointer;flex:none;
+    display:grid;place-content:center;
+  }
+  label.vaxel input:checked{background:var(--sekant);border-color:var(--sekant)}
+  label.vaxel input:checked::after{
+    content:"";width:20px;height:11px;border:solid #fff;border-width:0 0 4px 4px;transform:translateY(-3px) rotate(-45deg);
+  }
+  #derivat{margin-top:18px;padding-top:18px;border-top:1px solid var(--knapp-kant);text-align:center}
+  #derivat.dold{display:none}
+</style>
+</head>
+<body>
+<div id="scen">
+  <svg id="fig" viewBox="0 0 1600 900" aria-label="Graf med sekant och tangent"></svg>
+
+  <div id="vanster" class="ruta">
+    <div class="rad">
+      <button id="gaNoll" type="button"></button>
+      <label class="vaxel"><input id="visa" type="checkbox"><span class="m" data-m="f′(a)"></span></label>
+    </div>
+    <div class="hjalp">Dra i punkterna på kurvan</div>
+    <div id="derivat" class="dold">
+      <div class="etikett">Derivatans värde: <span class="m" id="fprim"></span></div>
+      <div class="ekv m" data-m="f′(a) = \lim{h→0}\frac{f(a+h) − f(a)}{h}"></div>
+    </div>
+  </div>
+
+  <div id="hoger" class="ruta">
+    <div class="etikett sek">Sekantens lutning: <span class="m" id="sekk"></span></div>
+    <div class="ekv m" id="sekrad"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  // Funktionen, anpassad efter GeoGebra-förlagan
+  var C3 = -0.05276968, C2 = -0.02813411, C1 = 3.31244315, C0 = -7.03494111;
+  function f(x){ return ((C3*x + C2)*x + C1)*x + C0; }
+  function fp(x){ return (3*C3*x + 2*C2)*x + C1; }
+
+  // Fönstret i data och i bildpunkter. Samma skala i x och y.
+  var GX0 = 80, GX1 = 1560, GY0 = 40, GY1 = 830, S = 600;
+  var XMAX = 4.95, XMIN = XMAX - (GX1 - GX0)/S;
+  var YMIN = 1.3, YMAX = YMIN + (GY1 - GY0)/S;
+  // Punkterna hålls ovanför sträckan h och där deras namn får plats
+  var BMIN = 3.5, BMAX = 4.8;
+  var HMIN = 0.001, HSTART = 0.5, ASTART = 3.7;
+  // Sträckan h ritas strax ovanför sekantrutan, som i GeoGebra-förlagan
+  var hoger = document.getElementById("hoger"), SEGY = 0;
+  var NS = "http://www.w3.org/2000/svg";
+
+  var a = ASTART, h = HSTART;
+
+  var scen = document.getElementById("scen");
+  var svg = document.getElementById("fig");
+  var knapp = document.getElementById("gaNoll");
+  var visa = document.getElementById("visa");
+
+  function skala(){
+    var s = Math.min(window.innerWidth/1600, window.innerHeight/900);
+    scen.style.transform = "translate(" + (-800*s) + "px," + (-450*s) + "px) scale(" + s + ")";
+  }
+  window.addEventListener("resize", skala);
+  skala();
+
+  function sx(x){ return GX0 + (x - XMIN)*S; }
+  function sy(y){ return GY1 - (y - YMIN)*S; }
+
+  function el(namn, attr, foralder){
+    var e = document.createElementNS(NS, namn);
+    for (var k in attr) e.setAttribute(k, attr[k]);
+    (foralder || svg).appendChild(e);
+    return e;
+  }
+  function kursiv(c){
+    return c === "h" ? "ℎ" : String.fromCodePoint(0x1D44E + c.charCodeAt(0) - 97);
+  }
+  // Mattetext i SVG med samma luft som i HTML
+  function matte(str, attr, foralder){
+    var t = el("text", attr, foralder), fs = attr["font-size"], luft = 0, forra = "";
+    str.split("").forEach(function(c){
+      if (c === " ") return;
+      var unar = c === "−" && (forra === "" || "=→≈(".indexOf(forra) >= 0);
+      forra = c;
+      var ts = document.createElementNS(NS, "tspan"), fore = luft;
+      luft = 0;
+      if (/[a-z]/.test(c)){ ts.textContent = kursiv(c); if (c === "f") luft = 0.06; }
+      else if ("=→≈".indexOf(c) >= 0){ ts.textContent = c; fore += 0.3; luft = 0.3; }
+      else if (unar) ts.textContent = c;
+      else if ("+−·".indexOf(c) >= 0){ ts.textContent = c === "·" ? "⋅" : c; fore += 0.22; luft = 0.22; }
+      else ts.textContent = c;
+      if (fore) ts.setAttribute("dx", fore*fs);
+      t.appendChild(ts);
+    });
+    return t;
+  }
+
+  // Mattetext i HTML. \frac{a}{b} ger ett bråk, \lim{h→0} ett gränsvärde,
+  // \sek{...} och \bla{...} färgar som sekanten och den blå punkten.
+  function M(s){
+    var ut = "", i = 0;
+    function grupp(){
+      var djup = 0, start = i + 1;
+      for (; i < s.length; i++){
+        if (s[i] === "{") djup++;
+        else if (s[i] === "}" && --djup === 0){ var g = s.slice(start, i); i++; return g; }
+      }
+      return "";
+    }
+    var forra = "";
+    while (i < s.length){
+      var c = s[i];
+      var unar = false;
+      if (c !== " " && c !== "\\" && c !== "{" && c !== "}") { unar = c === "−" && (forra === "" || "=→≈(".indexOf(forra) >= 0); forra = c; }
+      if (c === "\\"){
+        var kmd = /^\\([a-z]+)/.exec(s.slice(i))[1];
+        i += kmd.length + 1;
+        forra = "}";   // efter ett makro är ett minus binärt
+        if (kmd === "frac"){
+          var p = grupp(), q = grupp();
+          ut += '<span class="frac"><span class="num">' + M(p) + '</span><span class="den">' + M(q) + '</span></span>';
+        } else if (kmd === "lim"){
+          ut += '<span class="lim"><span>lim</span><span class="under">' + M(grupp()) + '</span></span>';
+        } else {
+          ut += '<span class="t-' + kmd + '">' + M(grupp()) + '</span>';
+        }
+        continue;
+      }
+      if (/[a-z]/.test(c)) ut += '<span class="v' + (c === "f" ? " vf" : "") + '">' + kursiv(c) + '</span>';
+      else if ("=→≈".indexOf(c) >= 0) ut += '<span class="rel">' + c + '</span>';
+      else if (unar) ut += c;
+      else if ("+·−".indexOf(c) >= 0) ut += '<span class="bin">' + (c === "·" ? "⋅" : c) + '</span>';
+      else if (c === "′") ut += '<span class="prim">′</span>';
+      else if (c !== " ") ut += c;
+      i++;
+    }
+    return ut;
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-m]"), function(e){
+    e.innerHTML = M(e.getAttribute("data-m"));
+  });
+
+  // Tal med decimalpunkt och riktigt minustecken
+  function minus(t){ return t.replace("-", "−"); }
+  function kort(v){ return minus(String(Number(v.toFixed(6)))); }   // 3.700 → 3.7
+  function fast(v, d){ return minus(v.toFixed(d)); }
+
+  // Den synliga delen av linjen y = y0 + k(x − x0)
+  function synlig(x0, y0, k){
+    var xa = XMIN, xb = XMAX;
+    if (k !== 0){
+      var u = x0 + (YMIN - y0)/k, o = x0 + (YMAX - y0)/k;
+      xa = Math.max(XMIN, Math.min(u, o)); xb = Math.min(XMAX, Math.max(u, o));
+    }
+    return [xa, xb];
+  }
+  // Namn som står längs en linje, en bit ovanför den
+  // Namn som står längs en linje. Sekantens namn sitter nära vänster ände men
+  // flyttas längs linjen tills det varken hamnar under en ruta eller vid en
+  // punkt. Tangentens namn sitter nära övre änden, på den sida där sekanten
+  // inte är, så att de två inte skär varandra när h är negativt.
+  function ledig(px, py, punkter){
+    var rutor = [document.getElementById("vanster"), hoger];
+    for (var i = 0; i < rutor.length; i++){
+      var r = rutor[i];
+      if (px > r.offsetLeft - 70 && px < r.offsetLeft + r.offsetWidth + 70 &&
+          py > r.offsetTop - 30 && py < r.offsetTop + r.offsetHeight + 30) return false;
+    }
+    for (var j = 0; j < punkter.length; j++)
+      if (Math.hypot(px - punkter[j][0], py - punkter[j][1]) < 80) return false;
+    return true;
+  }
+  function linjenamn(text, farg, x0, y0, k, slut, sida, punkter){
+    var v = synlig(x0, y0, k), n = Math.sqrt(1 + k*k), L = (v[1] - v[0])*S*n;
+    if (L < 200) return;
+    var lagen = slut ? [sida > 0 ? L - 115 : L - 75] : [];
+    if (!slut) for (var d = 110; d < L - 90; d += 40) lagen.push(d);
+    for (var i = 0; i < lagen.length; i++){
+      var s0 = lagen[i];
+      var px = sx(v[0]) + s0/n, py = sy(y0 + k*(v[0] - x0)) - s0*k/n;
+      var off = sida > 0 ? 16 : 38;
+      px += -sida*k/n*off; py += -sida/n*off;
+      if (!slut && !ledig(px, py, punkter)) continue;
+      var vinkel = Math.atan2(-k, 1)*180/Math.PI;
+      var t = el("text", {x:px, y:py, "font-size":30, "text-anchor":"middle", "class":"ord",
+        transform:"rotate(" + vinkel + " " + px + " " + py + ")"});
+      t.style.fill = farg;
+      t.textContent = text;
+      return;
+    }
+  }
+
+  var stil = getComputedStyle(document.documentElement);
+  function c(n){ return stil.getPropertyValue(n).trim(); }
+
+  function rita(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var b = a + h, fa = f(a), fb = f(b), k = (fb - fa)/h;
+    SEGY = hoger.offsetTop - 70;
+
+    var defs = el("defs", {});
+    var klipp = el("clipPath", {id:"ram"}, defs);
+    el("rect", {x:GX0, y:GY0, width:GX1-GX0, height:GY1-GY0}, klipp);
+
+    // Rutnät och skalor
+    el("rect", {x:GX0, y:GY0, width:GX1-GX0, height:GY1-GY0, fill:c("--panel")});
+    var x, y;
+    for (x = Math.ceil(XMIN*10)/10; x <= XMAX + 1e-9; x += 0.1){
+      x = Math.round(x*10)/10;
+      el("line", {x1:sx(x), y1:GY0, x2:sx(x), y2:GY1, stroke:c("--rut"), "stroke-width":1.5});
+      var tx = el("text", {x:sx(x), y:GY1 + 34, "font-size":24, "text-anchor":"middle"});
+      tx.style.fill = c("--rut-tal"); tx.textContent = kort(x);
+    }
+    for (y = Math.ceil(YMIN*10)/10; y <= YMAX + 1e-9; y += 0.1){
+      y = Math.round(y*10)/10;
+      el("line", {x1:GX0, y1:sy(y), x2:GX1, y2:sy(y), stroke:c("--rut"), "stroke-width":1.5});
+      var ty = el("text", {x:GX0 - 12, y:sy(y) + 8, "font-size":24, "text-anchor":"end"});
+      ty.style.fill = c("--rut-tal"); ty.textContent = kort(y);
+    }
+
+    var g = el("g", {"clip-path":"url(#ram)"});
+
+    // Kurvan
+    var d = "";
+    for (var px = GX0; px <= GX1; px += 2){
+      var xx = XMIN + (px - GX0)/S;
+      d += (d ? "L" : "M") + px + " " + sy(f(xx)).toFixed(1);
+    }
+    el("path", {d:d, fill:"none", stroke:c("--kurva"), "stroke-width":6, "stroke-linejoin":"round"}, g);
+
+    // Sekanten, förlängd över hela fönstret
+    el("line", {x1:sx(XMIN), y1:sy(fa + k*(XMIN - a)), x2:sx(XMAX), y2:sy(fa + k*(XMAX - a)),
+      stroke:c("--sekant"), "stroke-width":3.5}, g);
+
+    // Tangenten, streckad så att sekanten syns igenom när de sammanfaller
+    var kt = fp(a);
+    if (visa.checked){
+      el("line", {x1:sx(XMIN), y1:sy(fa + kt*(XMIN - a)), x2:sx(XMAX), y2:sy(fa + kt*(XMAX - a)),
+        stroke:c("--tangent"), "stroke-width":2.5, "stroke-dasharray":"12 8"}, g);
+    }
+
+    // Sträckan h med lodlinjer från punkterna
+    var lod = {stroke:"#6b625a", "stroke-width":2, "stroke-dasharray":"2 5", "stroke-linecap":"round"};
+    el("line", Object.assign({x1:sx(a), y1:sy(fa), x2:sx(a), y2:SEGY}, lod), g);
+    el("line", Object.assign({x1:sx(b), y1:sy(fb), x2:sx(b), y2:SEGY}, lod), g);
+    el("line", {x1:sx(a), y1:SEGY, x2:sx(b), y2:SEGY, stroke:c("--hgra"), "stroke-width":5}, g);
+    el("circle", {cx:sx(a), cy:SEGY, r:7, fill:"#d6cfc5", stroke:"#5a5149", "stroke-width":2}, g);
+    el("circle", {cx:sx(b), cy:SEGY, r:7, fill:"#d6cfc5", stroke:"#5a5149", "stroke-width":2}, g);
+    var hx = Math.min(GX1 - 110, Math.max(GX0 + 110, (sx(a) + sx(b))/2));
+    matte("h = " + kort(h), {x:hx, y:SEGY + 44, "font-size":30, "text-anchor":"middle"});
+
+    // Namn vid sträckans ändar: a och a+h, på var sin sida utanför sträckan
+    var vx = Math.min(a, b), hx2 = Math.max(a, b);
+    var vText = b < a ? "a+h" : "a", hText = b < a ? "a" : "a+h";
+    var vT = matte(vText, {x:sx(vx) - 16, y:SEGY + 10, "font-size":28, "text-anchor":"end"}, g);
+    if (b < a) vT.style.fill = c("--blå");
+    if (sx(vx) - 16 - vT.getComputedTextLength() < GX0 + 6){
+      vT.setAttribute("x", sx(vx) + 12); vT.setAttribute("y", SEGY - 16); vT.setAttribute("text-anchor", "start");
+    }
+    var hT = matte(hText, {x:sx(hx2) + 16, y:SEGY + 10, "font-size":28, "text-anchor":"start"}, g);
+    if (b > a) hT.style.fill = c("--blå");
+    if (sx(hx2) + 16 + hT.getComputedTextLength() > GX1 - 6){
+      hT.setAttribute("x", sx(hx2) - 12); hT.setAttribute("y", SEGY - 16); hT.setAttribute("text-anchor", "end");
+    }
+
+    // Namn på linjerna
+    var pts = [[sx(a), sy(fa)], [sx(b), sy(fb)]];
+    linjenamn("sekant", c("--sekant"), a, fa, k, false, 1, pts);
+    if (visa.checked) linjenamn("tangent", c("--tangent"), a, fa, kt, true, k > kt ? -1 : 1, pts);
+
+    // Namn vid punkterna, en bit ut längs kurvans normal på den kupiga sidan.
+    // Normalen står vinkelrätt mot tangenten, så namnet hamnar aldrig på den,
+    // och sekanten går under kurvan just där. När punkterna ligger nära
+    // varandra flyttas den högra punktens namn till andra sidan av kurvan.
+    var naraIhop = Math.hypot(sx(b) - sx(a), sy(fb) - sy(fa)) < 120;
+    function punktnamn(text, x, farg, under){
+      var k0 = fp(x), n = Math.sqrt(1 + k0*k0), R = 30;
+      var nx = (under ? k0 : -k0)/n, ny = (under ? 1 : -1)/n;
+      var px = sx(x) + nx*R, py = sy(f(x)) + ny*R;
+      var anker = "middle";
+      if (under){ anker = "start"; px = Math.max(px, sx(x) + 16); py += 22; }
+      else { if (nx < -0.3) anker = "end"; else if (nx > 0.3) anker = "start"; py -= 4; }
+      var t = matte(text, {x:px, y:py, "font-size":28, "text-anchor":anker});
+      t.style.fill = farg;
+      var bb = t.getBBox();
+      if (bb.x + bb.width > GX1 - 6) t.setAttribute("x", px - (bb.x + bb.width - GX1 + 6));
+      else if (bb.x < GX0 + 6) t.setAttribute("x", px + (GX0 + 6 - bb.x));
+    }
+    var vanster = b < a ? "b" : "a";
+    punktnamn("f(a)", a, c("--text"), naraIhop && vanster === "b");
+    punktnamn("f(a+h)", b, c("--blå"), naraIhop && vanster === "a");
+
+    // Punkterna, den blå sist så att den ligger överst och kan tas tag i
+    el("circle", {cx:sx(a), cy:sy(fa), r:10, fill:c("--text"), stroke:c("--panel"), "stroke-width":2.5});
+    if (drar === "b" || hover === "b")
+      el("circle", {cx:sx(b), cy:sy(fb), r:20, fill:c("--blå"), "fill-opacity":0.18, stroke:c("--blå"), "stroke-width":2});
+    el("circle", {cx:sx(b), cy:sy(fb), r:10, fill:c("--blå"), stroke:c("--panel"), "stroke-width":2.5});
+
+    // Förklaring i övre vänstra hörnet: ett stycke av kurvan och vad den är
+    var fx = GX0 + 26, fy = GY0 + 46;
+    var bakom = el("rect", {x:fx - 12, y:fy - 32, height:46, rx:4, fill:c("--panel"), "fill-opacity":0.9});
+    el("line", {x1:fx, y1:fy - 9, x2:fx + 44, y2:fy - 9, stroke:c("--kurva"), "stroke-width":6, "stroke-linecap":"round"});
+    var ord = el("text", {x:fx + 60, y:fy, "font-size":26, "class":"ord"});
+    ord.textContent = "Grafen till funktionen";
+    var fm = matte("y = f(x)", {x:fx + 60 + ord.getComputedTextLength() + 9, y:fy, "font-size":28});
+    bakom.setAttribute("width", fm.getBBox().x + fm.getBBox().width - fx + 24);
+
+    el("rect", {x:GX0, y:GY0, width:GX1-GX0, height:GY1-GY0, fill:"none", stroke:c("--ram"), "stroke-width":2});
+
+    // Sekantens lutning med tal. Funktionsvärdena får så många decimaler att
+    // täljaren har ungefär tre värdesiffror.
+    var dy = Math.max(Math.abs(fb - fa), Math.abs(h)*0.05);
+    var dec = Math.min(7, Math.max(3, 2 - Math.floor(Math.log10(dy))));
+    document.getElementById("sekrad").innerHTML = M("\\frac{\\bla{f(a+h)} − f(a)}{\\bla{(a+h)} − a} = \\frac{\\bla{" + fast(fb, dec) + "} − " + fast(fa, dec) +
+      "}{\\bla{" + kort(b) + "} − " + kort(a) + "}");
+    document.getElementById("sekk").innerHTML = M(fast(k, 3));
+
+    document.getElementById("fprim").innerHTML = M("f′(" + kort(a) + ") = " + fast(kt, 3));
+
+    knapp.innerHTML = Math.abs(h) <= HMIN + 1e-12 ? "Börja om" : "Låt " + '<span class="m">' + M("h → 0") + "</span>";
+  }
+
+  // Dra i punkterna
+  var drar = null, hover = null;
+  function scenpunkt(e){
+    var r = svg.getBoundingClientRect();
+    return {x:(e.clientX - r.left)*1600/r.width, y:(e.clientY - r.top)*900/r.height};
+  }
+  function traff(p){
+    var b = a + h;
+    if (Math.hypot(p.x - sx(b), p.y - sy(f(b))) < 34) return "b";
+    if (Math.hypot(p.x - sx(a), p.y - sy(f(a))) < 34) return "a";
+    return null;
+  }
+  function begransaH(){
+    var b = Math.min(BMAX, Math.max(BMIN, a + h));
+    h = Math.round((b - a)*1000)/1000;
+    if (Math.abs(h) < HMIN) h = (h < 0 ? -1 : 1)*HMIN;
+  }
+  svg.addEventListener("pointerdown", function(e){
+    var p = scenpunkt(e), t = traff(p);
+    if (!t) return;
+    stoppa();
+    drar = t;
+    svg.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    rita();
+  });
+  svg.addEventListener("pointermove", function(e){
+    var p = scenpunkt(e);
+    if (!drar){
+      var t = traff(p);
+      svg.style.cursor = t ? "grab" : "";
+      if (t !== hover){ hover = t; rita(); }
+      return;
+    }
+    svg.style.cursor = "grabbing";
+    var x = XMIN + (p.x - GX0)/S;
+    if (drar === "b"){
+      var forra = h;
+      x = Math.min(BMAX, Math.max(BMIN, x));
+      h = Math.round((x - a)*1000)/1000;
+      if (Math.abs(h) < HMIN) h = (h < 0 || (h === 0 && forra < 0) ? -1 : 1)*HMIN;
+    } else {
+      a = Math.round(Math.min(BMAX - 0.1, Math.max(BMIN + 0.05, x))*100)/100;
+      begransaH();
+    }
+    rita();
+  });
+  function slapp(){ if (drar){ drar = null; svg.style.cursor = ""; rita(); } }
+  svg.addEventListener("pointerup", slapp);
+  svg.addEventListener("pointercancel", slapp);
+  svg.addEventListener("pointerleave", function(){ if (!drar && hover){ hover = null; rita(); } });
+
+  // Låt h → 0: en tiopotens på 1.3 sekunder, tre värdesiffror i h hela vägen
+  var anim = null;
+  function stoppa(){ if (anim){ cancelAnimationFrame(anim); anim = null; } }
+  knapp.addEventListener("click", function(){
+    stoppa();
+    if (Math.abs(h) <= HMIN + 1e-12){ h = (h < 0 ? -1 : 1)*HSTART; begransaH(); rita(); return; }
+    var tecken = h < 0 ? -1 : 1, l0 = Math.log10(Math.abs(h)), lslut = Math.log10(HMIN), t0 = null;
+    function steg(tid){
+      if (t0 === null) t0 = tid;
+      var l = l0 - (tid - t0)/1300;
+      if (l <= lslut){ h = tecken*HMIN; anim = null; rita(); return; }
+      h = tecken*Number(Math.pow(10, l).toPrecision(3));
+      rita();
+      anim = requestAnimationFrame(steg);
+    }
+    anim = requestAnimationFrame(steg);
+  });
+
+  visa.addEventListener("change", function(){
+    document.getElementById("derivat").classList.toggle("dold", !visa.checked);
+    rita();
+  });
+
+  rita();
+  // Rutans höjd, och därmed sträckans läge, är rätt först när typsnittet laddats
+  if (document.fonts) document.fonts.ready.then(rita);
+})();
+</script>
+</body>
+</html>
