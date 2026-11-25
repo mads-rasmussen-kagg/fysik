@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sinuskurvans parametrar</title>
+<!--
+  sinusparametrar.html
+
+  Ersätter GeoGebra-filen "Interaktiv sinuskurva" (geogebra.org/m/pmtfjknk):
+  f(x) = A sin(k(x + v)) + C med glidare för A, C, k och fasparametern.
+
+  Två växlar utöver förlagan:
+  * Argumentets form: k(x + v) eller kx + w. Växlingen behåller kurvan och
+    räknar om parametern (w = kv), så det är samma funktion som skrivs på två
+    sätt. Skillnaden syns när k ändras: i k(x + v) står startpunkten x = −v
+    still, i kx + w vandrar den, eftersom den då ligger i x = −w/k.
+  * Enhet: grader eller radianer. Växlingen räknar om fasparametern och
+    x-axelns vy, så kurvan ligger kvar på samma ställe i bilden.
+
+  Hela scenen är 1600 x 900 och skalas som en enhet till fönstret (transform:
+  scale), så text, graf och glidare behåller sina inbördes storlekar oavsett
+  projektorns upplösning. Grafen är SVG och ritas om vid varje ändring.
+
+  Grafen flyttas genom att dra, zoomas med hjul, nyp eller knapparna, och en
+  axel sträcks för sig genom att dra i dess siffror (som i GeoGebra).
+  Hjälplinjerna visar mittlinjen y = C och startpunkten där argumentet är 0.
+
+  Matten sätts i en inbäddad delmängd av Latin Modern Math, samma grund som
+  produktregeln.html.
+-->
+<style>
+  /* Delmängd av Latin Modern Math (GUST Font License), inbäddad så att matten
+     ser likadan ut på varje dator och projektor. */
+  @font-face{font-family:"LMM";src:url(data:font/woff2;base64,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) format("woff2")}
+  :root{
+    --bg:#fbf7f0; --panel:#fffdf9; --text:#2c2521; --svag:#8b7f72;
+    --linje:#4a4038; --tunn:#9c8f80;
+    --rut:#ddd2c2; --rut-fin:#efe8dd;
+    --kurva:#2f6d86; --hjalp:#c2503a;
+    --knapp:#efe6d8; --knapp-kant:#d8c9b4;
+  }
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden}
+  #scen{-webkit-user-select:none;user-select:none}
+  .varde input{-webkit-user-select:text;user-select:text}
+  #scen{
+    position:absolute; left:50%; top:50%; width:1600px; height:900px;
+    transform-origin:0 0; color:var(--text);
+    font-family:"Charter","Iowan Old Style","Georgia","Times New Roman",serif;
+  }
+  .m{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;white-space:nowrap}
+  .m .v{margin-right:.02em}
+  .m .vf{margin-right:.06em}
+  .m .rel{margin:0 .3em}
+  .m .bin{margin:0 .22em}
+  .m .fnl{margin-left:.17em}
+  .frac{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;margin:0 .1em;line-height:1.15;font-size:.8em}
+  .frac .num{border-bottom:1.5px solid currentColor;padding:0 .15em .04em}
+  .frac .den{padding:.04em .15em 0}
+
+  /* Formlerna ovanför grafen: en rad per skrivsätt, allmänt uttryck till
+     vänster och insatta värden till höger. Raden för det valda skrivsättet
+     står i full svärta, den andra är ljusare. Kolumnerna står still, så
+     siffrorna byts på plats när man drar i en glidare. */
+  #formel{position:absolute;left:630px;top:24px;display:grid;grid-template-columns:auto auto auto}
+  #formel > div{font-size:29px;height:54px;display:flex;align-items:center;color:var(--svag)}
+  #formel > div.vald{color:var(--text)}
+  #formel .vl{justify-content:flex-end}
+  #formel .ins{padding-left:1.4em}
+
+  #graf{position:absolute;left:510px;top:150px;width:1050px;height:710px;touch-action:none;cursor:grab;
+        border:2px solid var(--tunn);box-sizing:border-box;background:var(--panel)}
+  #graf text{font-family:"LMM","Latin Modern Roman","CMU Serif","STIX Two Text","Cambria","Times New Roman",serif;fill:var(--text)}
+  #graf .halo{stroke:var(--panel);stroke-width:6px;stroke-linejoin:round;paint-order:stroke}
+
+  #zoom{position:absolute;left:1360px;top:166px;display:flex;gap:10px}
+  #zoom button{width:52px;height:52px;padding:0;display:flex;align-items:center;justify-content:center}
+
+  #styr{position:absolute;left:40px;top:150px;width:430px;height:710px;display:flex;flex-direction:column;justify-content:space-between}
+  .seg{display:flex;margin-bottom:14px}
+  .seg:last-child{margin-bottom:0}
+  button{
+    font:inherit;color:var(--text);background:var(--knapp);border:2px solid var(--knapp-kant);
+    border-radius:8px;cursor:pointer;touch-action:manipulation;
+  }
+  .seg button{flex:1;height:58px;font-size:27px;border-radius:0}
+  .seg button:first-child{border-radius:8px 0 0 8px}
+  .seg button:last-child{border-radius:0 8px 8px 0;border-left:none}
+  .seg button.m{font-size:31px}
+  button.på{background:var(--text);color:var(--bg);border-color:var(--text)}
+  .param{margin:6px 0}
+  .param .rubrik{font-size:31px;display:flex;align-items:center;height:48px}
+  .varde{display:inline-flex;align-items:center;min-width:120px;height:44px;padding:0 10px;margin-left:4px;
+         border-bottom:2px dashed var(--knapp-kant);cursor:text}
+  .varde input{font:inherit;width:130px;border:none;background:var(--panel);outline:2px solid var(--kurva);padding:2px 4px}
+  #hjalp{width:100%;height:58px;font-size:27px}
+
+  input[type=range]{
+    -webkit-appearance:none;appearance:none;width:100%;height:36px;margin:0;
+    background:transparent;touch-action:manipulation;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:var(--knapp-kant)}
+  input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:var(--knapp-kant)}
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:34px;height:34px;border-radius:50%;margin-top:-13px;
+    background:var(--text);border:5px solid var(--knapp);box-shadow:0 0 0 2px var(--text);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:24px;height:24px;border-radius:50%;
+    background:var(--text);border:5px solid var(--knapp);box-shadow:0 0 0 2px var(--text);
+  }
+</style>
+</head>
+<body>
+<div id="scen">
+  <div id="formel" class="m">
+    <div class="vl" data-form="v"></div><div data-form="v" id="allmV"></div><div class="ins" data-form="v" id="insV"></div>
+    <div class="vl" data-form="w"></div><div data-form="w" id="allmW"></div><div class="ins" data-form="w" id="insW"></div>
+  </div>
+
+  <svg id="graf" viewBox="0 0 1050 710" aria-label="Graf till sinusfunktionen"></svg>
+
+  <div id="zoom">
+    <button id="zIn" title="Zooma in" aria-label="Zooma in"><svg width="24" height="24"><path d="M3 12h18M12 3v18" stroke="currentColor" stroke-width="3"/></svg></button>
+    <button id="zUt" title="Zooma ut" aria-label="Zooma ut"><svg width="24" height="24"><path d="M3 12h18" stroke="currentColor" stroke-width="3"/></svg></button>
+    <button id="zHem" title="Återställ vyn" aria-label="Återställ vyn"><svg width="26" height="26"><path d="M3 13L13 4l10 9M6 11v11h5v-6h4v6h5V11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg></button>
+  </div>
+
+  <div id="styr">
+    <div>
+      <div class="seg" id="segForm">
+        <button class="m" data-val="v" id="knV"></button><button class="m" data-val="w" id="knW"></button>
+      </div>
+      <div class="seg" id="segEnhet">
+        <button data-val="grad">grader</button><button data-val="rad">radianer</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="param"><div class="rubrik"><span class="m" id="nA"></span><span class="varde m" data-p="A"></span></div>
+        <input type="range" data-p="A" min="-5" max="5" step="0.1" aria-label="A"></div>
+      <div class="param"><div class="rubrik"><span class="m" id="nC"></span><span class="varde m" data-p="C"></span></div>
+        <input type="range" data-p="C" min="-5" max="5" step="0.1" aria-label="C"></div>
+      <div class="param"><div class="rubrik"><span class="m" id="nk"></span><span class="varde m" data-p="k"></span></div>
+        <input type="range" data-p="k" min="-5" max="5" step="0.1" aria-label="k"></div>
+      <div class="param"><div class="rubrik"><span class="m" id="nF"></span><span class="varde m" data-p="fas"></span></div>
+        <input type="range" data-p="fas" aria-label="Fasparameter"></div>
+    </div>
+
+    <button id="hjalp">Hjälplinjer</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var GW = 1050, GH = 710;
+  var P = Math.PI, GRAD = P/180;
+
+  var scen = document.getElementById("scen");
+  var svg = document.getElementById("graf");
+
+  function skala(){
+    var s = Math.min(window.innerWidth/1600, window.innerHeight/900);
+    scen.style.transform = "translate(" + (-800*s) + "px," + (-450*s) + "px) scale(" + s + ")";
+  }
+  window.addEventListener("resize", skala);
+  skala();
+
+  // ---------- Tillstånd ----------
+  // v och w lagras i den enhet som visas. I formen k(x + v) är v given och
+  // w = kv följer; i formen kx + w är det tvärtom.
+  var st = {A:1, C:0, k:1, v:0, w:0, form:"v", enhet:"grad", hjalp:false};
+  var vy;
+
+  function fas(){ return st.form === "v" ? st.v : st.w; }
+  function arg(x){
+    var a = st.form === "v" ? st.k*(x + st.v) : st.k*x + st.w;
+    return st.enhet === "grad" ? a*GRAD : a;
+  }
+  function f(x){ return st.A*Math.sin(arg(x)) + st.C; }
+  // Där argumentet är 0, alltså där en period börjar
+  function startX(){
+    if (st.form === "v") return -st.v;
+    return st.k === 0 ? null : -st.w/st.k;
+  }
+
+  // ---------- Tal och matte ----------
+  function fmt(x, dec){
+    var s = x.toFixed(dec);
+    if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, "");
+    if (s === "-0") s = "0";
+    return s;
+  }
+  function minus(s){ return s.replace(/-/g, "−"); }
+  // x = (p/q)·π med litet q, annars null
+  function piBrak(x){
+    var qs = [1, 2, 3, 4, 6, 12];
+    for (var i = 0; i < qs.length; i++){
+      var p = x/P*qs[i], r = Math.round(p);
+      if (r !== 0 && Math.abs(p - r) < 1e-9) return {p:r, q:qs[i]};
+    }
+    return null;
+  }
+  var KOD = {A:0x1D434, C:0x1D436, f:0x1D453, k:0x1D458, v:0x1D463, w:0x1D464, x:0x1D465, y:0x1D466};
+  var PI = String.fromCodePoint(0x1D70B);
+  function kursiv(c){ return String.fromCodePoint(KOD[c]); }
+  function I(c){ return '<span class="v' + (c === "f" ? " vf" : "") + '">' + kursiv(c) + '</span>'; }
+  function op(c){ return '<span class="bin">' + c + '</span>'; }
+  function rel(c){ return '<span class="rel">' + c + '</span>'; }
+  function piHTML(p, q){
+    var n = (p === 1 ? "" : p) + PI;
+    return q === 1 ? n : '<span class="frac"><span class="num">' + n + '</span><span class="den">' + q + '</span></span>';
+  }
+  // Fasvärdets belopp, med gradtecken eller som π-bråk när det går
+  function fasHTML(a){
+    if (st.enhet === "grad") return fmt(a, 1) + "°";
+    var b = piBrak(a);
+    return b ? piHTML(b.p, b.q) : fmt(a, 2);
+  }
+  function arNoll(a){ return st.enhet === "grad" ? fmt(a, 1) === "0" : (fmt(a, 2) === "0" && !piBrak(a)); }
+  function teckenHTML(x){ return op(x < 0 ? "−" : "+"); }
+  function koeff(x){ var s = fmt(x, 2); return s === "1" ? "" : s === "-1" ? "−" : minus(s); }
+
+  function argHTML(form, fv){
+    var k = fmt(st.k, 2), kh = koeff(st.k), a = Math.abs(fv);
+    if (form === "v"){
+      if (k === "0") return "0";
+      if (arNoll(a)) return kh + I("x");
+      var inre = I("x") + teckenHTML(fv) + fasHTML(a);
+      return k === "1" ? inre : kh + "(" + inre + ")";
+    }
+    if (k === "0") return arNoll(a) ? "0" : (fv < 0 ? "−" : "") + fasHTML(a);
+    return kh + I("x") + (arNoll(a) ? "" : teckenHTML(fv) + fasHTML(a));
+  }
+  function hogerled(form, fv){
+    var a = koeff(st.A);
+    var s = (a === "" || a === "−") ? a + "sin" : a + '<span class="fnl">sin</span>';
+    s += "(" + argHTML(form, fv) + ")";
+    if (fmt(st.C, 2) !== "0") s += teckenHTML(st.C) + fmt(Math.abs(st.C), 2);
+    return rel("=") + s;
+  }
+
+  // ---------- Glidare och värden ----------
+  var glid = {}, varde = {};
+  Array.prototype.forEach.call(document.querySelectorAll("input[type=range]"), function(e){ glid[e.getAttribute("data-p")] = e; });
+  Array.prototype.forEach.call(document.querySelectorAll(".varde"), function(e){ varde[e.getAttribute("data-p")] = e; });
+
+  function vardeAv(p){ return p === "fas" ? fas() : st[p]; }
+  function vardeHTML(p){
+    var x = vardeAv(p);
+    if (p !== "fas") return minus(fmt(x, 2));
+    if (arNoll(Math.abs(x))) return st.enhet === "grad" ? "0°" : "0";
+    return (x < 0 ? "−" : "") + fasHTML(Math.abs(x));
+  }
+  function vardeText(p){
+    var x = vardeAv(p);
+    if (p === "fas" && st.enhet === "rad"){
+      var b = piBrak(Math.abs(x));
+      if (b) return (x < 0 ? "−" : "") + (b.p === 1 ? "" : b.p) + "π" + (b.q === 1 ? "" : "/" + b.q);
+    }
+    return minus(fmt(x, p === "fas" && st.enhet === "grad" ? 1 : p === "fas" ? 4 : 3));
+  }
+  function satt(p, x){
+    if (p === "fas"){ if (st.form === "v") st.v = x; else st.w = x; }
+    else st[p] = x;
+  }
+  // Tolkar inskrivna värden: decimalpunkt eller komma, −, °, och π-uttryck
+  // som "pi/2" eller "-2π/3". I gradläge betyder π 180°.
+  function tolka(s){
+    s = s.trim().replace(/−/g, "-").replace(/,/g, ".").replace(/°/g, "").replace(/π/g, "pi").replace(/\s+/g, "");
+    var m = /^([+-]?)(\d*\.?\d*)(pi)?(?:\/(\d*\.?\d+))?$/.exec(s);
+    if (!m || (m[2] === "" && !m[3]) || m[2] === ".") return null;
+    var x = (m[2] === "" ? 1 : parseFloat(m[2]));
+    if (m[3]) x *= st.enhet === "grad" ? 180 : P;
+    if (m[4]) x /= parseFloat(m[4]);
+    if (!isFinite(x)) return null;
+    return m[1] === "-" ? -x : x;
+  }
+
+  function stallFasGlidare(){
+    var g = glid.fas, max = st.form === "v" ? 360 : 720;
+    if (st.enhet === "grad"){ g.min = -max; g.max = max; g.step = 1; }
+    else { g.min = -max*GRAD; g.max = max*GRAD; g.step = 0.01; }
+  }
+
+  Object.keys(glid).forEach(function(p){
+    glid[p].addEventListener("input", function(){
+      satt(p, parseFloat(glid[p].value));
+      uppdatera(false);
+    });
+  });
+
+  Object.keys(varde).forEach(function(p){
+    var sp = varde[p];
+    sp.addEventListener("click", function(){
+      if (sp.querySelector("input")) return;
+      var inp = document.createElement("input");
+      inp.value = vardeText(p);
+      inp.setAttribute("inputmode", "text");
+      sp.innerHTML = "";
+      sp.appendChild(inp);
+      inp.focus(); inp.select();
+      var avbryt = false;
+      inp.addEventListener("keydown", function(e){
+        if (e.key === "Enter") inp.blur();
+        else if (e.key === "Escape"){ avbryt = true; inp.blur(); }
+      });
+      inp.addEventListener("blur", function(){
+        var x = avbryt ? null : tolka(inp.value);
+        if (x !== null) satt(p, x);
+        sp.innerHTML = "";
+        uppdatera(true);
+      });
+    });
+  });
+
+  // ---------- Växlar ----------
+  function valjSeg(id, val){
+    Array.prototype.forEach.call(document.querySelectorAll("#" + id + " button"), function(b){
+      b.classList.toggle("på", b.getAttribute("data-val") === val);
+    });
+  }
+  document.getElementById("knV").innerHTML = I("k") + "(" + I("x") + op("+") + I("v") + ")";
+  document.getElementById("knW").innerHTML = I("k") + I("x") + op("+") + I("w");
+
+  document.getElementById("segForm").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    var ny = b.getAttribute("data-val");
+    if (ny === st.form) return;
+    // Samma kurva, annan skrivning
+    if (ny === "w") st.w = st.k*st.v;
+    else if (st.k !== 0) st.v = st.w/st.k;
+    st.form = ny;
+    stallFasGlidare();
+    uppdatera(true);
+  });
+  document.getElementById("segEnhet").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if (!b) return;
+    var ny = b.getAttribute("data-val");
+    if (ny === st.enhet) return;
+    var c = ny === "rad" ? GRAD : 1/GRAD;
+    st.v *= c; st.w *= c; vy.x0 *= c; vy.x1 *= c;
+    st.enhet = ny;
+    stallFasGlidare();
+    uppdatera(true);
+  });
+  document.getElementById("hjalp").addEventListener("click", function(){
+    st.hjalp = !st.hjalp;
+    this.classList.toggle("på", st.hjalp);
+    rita();
+  });
+
+  function uppdatera(alla){
+    valjSeg("segForm", st.form);
+    valjSeg("segEnhet", st.enhet);
+    var fn = st.form;
+    document.getElementById("nA").innerHTML = I("A") + rel("=");
+    document.getElementById("nC").innerHTML = I("C") + rel("=");
+    document.getElementById("nk").innerHTML = I("k") + rel("=");
+    document.getElementById("nF").innerHTML = I(fn) + rel("=");
+    // Båda skrivsätten av samma funktion. Det valda har sin parameter given,
+    // det andra räknas fram (w = kv). Med k = 0 i formen kx + w finns inget v.
+    var vVarde = fn === "v" ? st.v : (st.k === 0 ? null : st.w/st.k);
+    var wVarde = fn === "w" ? st.w : st.k*st.v;
+    function allm(form){
+      return rel("=") + I("A") + '<span class="fnl">sin</span>(' +
+        (form === "v" ? I("k") + "(" + I("x") + op("+") + I("v") + ")" : I("k") + I("x") + op("+") + I("w")) +
+        ")" + op("+") + I("C");
+    }
+    document.getElementById("allmV").innerHTML = allm("v");
+    document.getElementById("allmW").innerHTML = allm("w");
+    document.getElementById("insV").innerHTML = vVarde === null ? "" : hogerled("v", vVarde);
+    document.getElementById("insW").innerHTML = hogerled("w", wVarde);
+    Array.prototype.forEach.call(document.querySelectorAll("#formel > div"), function(e){
+      if (e.classList.contains("vl")) e.innerHTML = I("f") + "(" + I("x") + ")";
+      e.classList.toggle("vald", e.getAttribute("data-form") === fn);
+    });
+
+    Object.keys(varde).forEach(function(p){
+      if (!varde[p].querySelector("input")) varde[p].innerHTML = vardeHTML(p);
+      if (alla) glid[p].value = vardeAv(p);
+    });
+    rita();
+  }
+
+  // ---------- Vyn ----------
+  function standardVy(){
+    var e = st.enhet === "grad" ? 1 : GRAD;
+    var lo = Math.min(st.C - Math.abs(st.A), 0), hi = Math.max(st.C + Math.abs(st.A), 0);
+    var y0 = -2, y1 = 2;
+    if (lo < -1.75 || hi > 1.75){
+      var pad = 0.15*(hi - lo);
+      y0 = Math.min(-0.5, lo - pad); y1 = Math.max(0.5, hi + pad);
+    }
+    vy = {x0:-45*e, x1:405*e, y0:y0, y1:y1};
+  }
+  function spannGranser(){
+    var e = st.enhet === "grad" ? 1 : GRAD;
+    return {xmin:10*e, xmax:7200*e, ymin:0.02, ymax:500};
+  }
+  function begransa(){
+    var g = spannGranser(), sx = vy.x1 - vy.x0, sy = vy.y1 - vy.y0, m;
+    if (sx < g.xmin || sx > g.xmax){ m = (vy.x0 + vy.x1)/2; sx = Math.min(g.xmax, Math.max(g.xmin, sx)); vy.x0 = m - sx/2; vy.x1 = m + sx/2; }
+    if (sy < g.ymin || sy > g.ymax){ m = (vy.y0 + vy.y1)/2; sy = Math.min(g.ymax, Math.max(g.ymin, sy)); vy.y0 = m - sy/2; vy.y1 = m + sy/2; }
+  }
+  function px(x){ return (x - vy.x0)/(vy.x1 - vy.x0)*GW; }
+  function py(y){ return GH - (y - vy.y0)/(vy.y1 - vy.y0)*GH; }
+  function dx(X){ return vy.x0 + X/GW*(vy.x1 - vy.x0); }
+  function dy(Y){ return vy.y0 + (GH - Y)/GH*(vy.y1 - vy.y0); }
+
+  // Zooma med faktorn z (z < 1 zoomar in) kring bildpunkten (X, Y)
+  function zooma(z, X, Y, baraX, baraY){
+    var ax = dx(X), ay = dy(Y);
+    if (!baraY){ vy.x0 = ax + (vy.x0 - ax)*z; vy.x1 = ax + (vy.x1 - ax)*z; }
+    if (!baraX){ vy.y0 = ay + (vy.y0 - ay)*z; vy.y1 = ay + (vy.y1 - ay)*z; }
+    begransa();
+  }
+
+  // ---------- Rutnät ----------
+  // [steg, finsteg, steg som bråkdel av π (täljare, nämnare) eller null]
+  var XGRAD = [[1,.5],[2,1],[5,1],[10,5],[15,5],[30,10],[45,15],[90,30],[180,90],[360,90],[720,180],[1800,360],[3600,720]];
+  var XRAD = [[.01,.005],[.02,.01],[.05,.01],[.1,.05],[.2,.1],
+    [P/12,P/24,1,12],[P/6,P/12,1,6],[P/4,P/12,1,4],[P/2,P/6,1,2],[P,P/4,1,1],[2*P,P/2,2,1],[4*P,P,4,1],[8*P,2*P,8,1],[20*P,4*P,20,1]];
+  function xSteg(){
+    var ppu = GW/(vy.x1 - vy.x0), lista = st.enhet === "grad" ? XGRAD : XRAD;
+    for (var i = 0; i < lista.length; i++) if (lista[i][0]*ppu >= 64) return lista[i];
+    return lista[lista.length - 1];
+  }
+  function ySteg(){
+    var ppu = GH/(vy.y1 - vy.y0);
+    for (var e = -3; e <= 3; e++){
+      var b = Math.pow(10, e);
+      var ms = [[1, .2], [2, .5], [5, 1]];
+      for (var i = 0; i < 3; i++) if (ms[i][0]*b*ppu >= 55) return [ms[i][0]*b, ms[i][1]*b, Math.max(0, -e)];
+    }
+    return [1000, 200, 0];
+  }
+  function gcd(a, b){ return b ? gcd(b, a % b) : Math.abs(a); }
+
+  function el(namn, attr, foralder){
+    var e = document.createElementNS(NS, namn);
+    for (var k in attr) e.setAttribute(k, attr[k]);
+    (foralder || svg).appendChild(e);
+    return e;
+  }
+  function text(str, attr, foralder){
+    var t = el("text", attr, foralder);
+    t.textContent = str;
+    return t;
+  }
+  function farg(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  // Etikett på x-axeln: vanligt tal eller π-bråk med vågrätt bråkstreck
+  function xEtikett(g, X, yc, j, steg, fargen){
+    var attr = {"text-anchor":"middle", "class":"halo"};
+    if (fargen) attr.style = "fill:" + fargen;
+    if (st.enhet === "grad"){
+      text(minus(fmt(j*steg[0], 1)) + "°", Object.assign({x:X, y:yc + 7, "font-size":22}, attr), g);
+      return;
+    }
+    if (steg.length < 3){
+      var dec = Math.max(0, -Math.floor(Math.log10(steg[0]) + 1e-9));
+      text(minus((j*steg[0]).toFixed(dec)), Object.assign({x:X, y:yc + 7, "font-size":22}, attr), g);
+      return;
+    }
+    var p = j*steg[2], q = steg[3], d = gcd(p, q);
+    p /= d; q /= d;
+    var tal = (Math.abs(p) === 1 ? "" : Math.abs(p)) + PI;
+    if (q === 1){ text((p < 0 ? "−" : "") + tal, Object.assign({x:X, y:yc + 7, "font-size":22}, attr), g); return; }
+    var t1 = text(tal, Object.assign({x:X, y:yc - 3, "font-size":19}, attr), g);
+    var bred = Math.max(t1.getComputedTextLength(), 12) + 4;
+    // Minustecknet står framför bråket, i höjd med bråkstrecket
+    if (p < 0) text("−", Object.assign({x:X - bred/2 - 3, y:yc + 8, "font-size":22, "text-anchor":"end"}, attr), g);
+    el("rect", {x:X - bred/2 - 2, y:yc - 1, width:bred + 4, height:5, fill:farg("--panel")}, g);
+    el("line", {x1:X - bred/2, x2:X + bred/2, y1:yc + 1.5, y2:yc + 1.5, stroke:fargen || farg("--text"), "stroke-width":1.3}, g);
+    text(String(q), Object.assign({x:X, y:yc + 18, "font-size":19}, attr), g);
+  }
+
+  function rita(){
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var defs = el("defs", {});
+    var cp = el("clipPath", {id:"ram"}, defs);
+    el("rect", {x:0, y:0, width:GW, height:GH}, cp);
+
+    var xs = xSteg(), ys = ySteg();
+    var g = el("g", {"clip-path":"url(#ram)"});
+    var j, X, Y;
+
+    // Rutnät, fint först och grovt ovanpå
+    function rutor(steg, fargen, bredd){
+      if (steg*GW/(vy.x1 - vy.x0) >= 12)
+        for (j = Math.ceil(vy.x0/steg); j*steg <= vy.x1; j++){ X = px(j*steg); el("line", {x1:X, x2:X, y1:0, y2:GH, stroke:fargen, "stroke-width":bredd}, g); }
+    }
+    function rutorY(steg, fargen, bredd){
+      if (steg*GH/(vy.y1 - vy.y0) >= 12)
+        for (j = Math.ceil(vy.y0/steg); j*steg <= vy.y1; j++){ Y = py(j*steg); el("line", {x1:0, x2:GW, y1:Y, y2:Y, stroke:fargen, "stroke-width":bredd}, g); }
+    }
+    rutor(xs[1], farg("--rut-fin"), 1); rutorY(ys[1], farg("--rut-fin"), 1);
+    rutor(xs[0], farg("--rut"), 1.2);  rutorY(ys[0], farg("--rut"), 1.2);
+
+    // Axlar
+    var xA = px(0), yA = py(0), lin = farg("--linje");
+    var xSyns = xA >= 0 && xA <= GW, ySyns = yA >= 0 && yA <= GH;
+    if (ySyns){
+      el("line", {x1:0, x2:GW, y1:yA, y2:yA, stroke:lin, "stroke-width":2}, g);
+      el("path", {d:"M" + GW + " " + yA + "l-14 -6v12z", fill:lin}, g);
+    }
+    if (xSyns){
+      el("line", {x1:xA, x2:xA, y1:0, y2:GH, stroke:lin, "stroke-width":2}, g);
+      el("path", {d:"M" + xA + " 0l-6 14h12z", fill:lin}, g);
+    }
+
+    // Hjälplinjer under kurvan: mittlinjen y = C och startpunktens lodlinje
+    var hj = farg("--hjalp"), x0 = startX(), X0 = x0 === null ? null : px(x0);
+    var yc = Math.min(Math.max(yA + 28, 24), GH - 26);
+    if (st.hjalp){
+      var YC = py(st.C);
+      el("line", {x1:0, x2:GW, y1:YC, y2:YC, stroke:hj, "stroke-width":2, "stroke-dasharray":"10 7"}, g);
+      if (X0 !== null && X0 > -10 && X0 < GW + 10)
+        el("line", {x1:X0, x2:X0, y1:YC, y2:Math.min(Math.max(yA, 0), GH), stroke:hj, "stroke-width":2, "stroke-dasharray":"6 5"}, g);
+    }
+
+    // Kurvan, en punkt per bildpunkt
+    var d = "";
+    for (var i = 0; i <= GW; i++){
+      var y = py(f(dx(i)));
+      y = Math.max(-5000, Math.min(GH + 5000, y));
+      d += (i ? "L" : "M") + i + " " + y.toFixed(2);
+    }
+    el("path", {d:d, fill:"none", stroke:farg("--kurva"), "stroke-width":3.5, "stroke-linejoin":"round"}, g);
+
+    if (st.hjalp && X0 !== null && X0 > -10 && X0 < GW + 10)
+      el("circle", {cx:X0, cy:py(st.C), r:7, fill:hj, stroke:farg("--panel"), "stroke-width":2}, g);
+
+    // Siffror, ritade sist och med en lucka i papperfärg bakom sig
+    var lg = el("g", {});
+    var hjEtikett = st.hjalp && X0 !== null && X0 > 20 && X0 < GW - 20;
+    for (j = Math.ceil(vy.x0/xs[0]); j*xs[0] <= vy.x1; j++){
+      if (j === 0 && xSyns) continue;
+      X = px(j*xs[0]);
+      if (X < 22 || X > GW - 22) continue;
+      if (hjEtikett && Math.abs(X - X0) < 52) continue;
+      xEtikett(lg, X, yc, j, xs);
+    }
+    var lx = xA - 10, ank = "end";
+    if (lx < 44){ lx = Math.max(xA, 0) + 10; ank = "start"; }
+    if (lx > GW - 10){ lx = GW - 10; ank = "end"; }
+    for (j = Math.ceil(vy.y0/ys[0]); j*ys[0] <= vy.y1; j++){
+      if (j === 0) continue;
+      Y = py(j*ys[0]);
+      if (Y < 14 || Y > GH - 14) continue;
+      if (ySyns && Math.abs(Y - yA) < 20) continue;
+      text(minus(fmt(j*ys[0], ys[2])), {x:lx, y:Y + 7, "font-size":22, "text-anchor":ank, "class":"halo"}, lg);
+    }
+    if (xSyns && ySyns) text("0", {x:xA - 10, y:yc + 7, "font-size":22, "text-anchor":"end", "class":"halo"}, lg);
+    if (ySyns) text(kursiv("x"), {x:GW - 14, y:yA - 14, "font-size":26, "text-anchor":"end", "class":"halo"}, lg);
+    if (xSyns) text(kursiv("y"), {x:xA + 14, y:26, "font-size":26, "class":"halo"}, lg);
+
+    // Startpunktens läge på x-axeln, i hjälplinjernas färg
+    if (hjEtikett){
+      var a = Math.abs(x0), s = x0 < 0 ? "−" : "";
+      if (st.enhet === "grad") text(s + fmt(a, 1) + "°", {x:X0, y:yc + 7, "font-size":22, "text-anchor":"middle", "class":"halo", style:"fill:" + hj}, lg);
+      else {
+        var b = piBrak(a);
+        if (b) xEtikett(lg, X0, yc, (x0 < 0 ? -1 : 1)*b.p, [0, 0, 1, b.q], hj);
+        else text(s + fmt(a, 2), {x:X0, y:yc + 7, "font-size":22, "text-anchor":"middle", "class":"halo", style:"fill:" + hj}, lg);
+      }
+    }
+  }
+
+  // ---------- Dra, nyp och hjul ----------
+  function lok(e){
+    var r = svg.getBoundingClientRect();
+    return {x:(e.clientX - r.left)/r.width*GW, y:(e.clientY - r.top)/r.height*GH};
+  }
+  // Vad en nedtryckning på p gör: sträcker en axel om den träffar axelns
+  // siffror, annars flyttar den vyn.
+  function greppTyp(p){
+    var xA = px(0), yA = py(0);
+    if (yA > 0 && yA < GH && p.y > yA - 12 && p.y < yA + 48 && Math.abs(p.x - xA) > 40) return "xaxel";
+    if (xA > 0 && xA < GW && p.x > xA - 70 && p.x < xA + 12 && Math.abs(p.y - yA) > 40) return "yaxel";
+    return "flytta";
+  }
+  var pek = {}, grepp = null;
+  function antal(){ return Object.keys(pek).length; }
+  function startaGrepp(){
+    var ids = Object.keys(pek);
+    if (ids.length === 2){ grepp = {typ:"nyp"}; return; }
+    if (ids.length !== 1){ grepp = null; return; }
+    var p = pek[ids[0]], typ = greppTyp(p);
+    grepp = {typ:typ};
+    if (typ === "xaxel"){
+      var ax = px(0);
+      grepp.ankarP = ax; grepp.data = dx(p.x);
+    } else if (typ === "yaxel"){
+      grepp.ankarP = py(0); grepp.data = dy(p.y);
+    }
+  }
+  svg.addEventListener("pointerdown", function(e){
+    svg.setPointerCapture(e.pointerId);
+    pek[e.pointerId] = lok(e);
+    startaGrepp();
+    svg.style.cursor = grepp && grepp.typ === "flytta" ? "grabbing" : svg.style.cursor;
+  });
+  svg.addEventListener("pointermove", function(e){
+    var p = lok(e);
+    if (!(e.pointerId in pek)){
+      var t = greppTyp(p);
+      svg.style.cursor = t === "xaxel" ? "ew-resize" : t === "yaxel" ? "ns-resize" : "grab";
+      return;
+    }
+    var gammal = pek[e.pointerId];
+    if (grepp && grepp.typ === "nyp"){
+      var ids = Object.keys(pek), a = pek[ids[0]], b = pek[ids[1]];
+      var m0 = {x:(a.x + b.x)/2, y:(a.y + b.y)/2}, d0 = Math.hypot(a.x - b.x, a.y - b.y);
+      pek[e.pointerId] = p;
+      a = pek[ids[0]]; b = pek[ids[1]];
+      var m1 = {x:(a.x + b.x)/2, y:(a.y + b.y)/2}, d1 = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d0 > 10 && d1 > 10) zooma(d0/d1, m0.x, m0.y);
+      flytta(m1.x - m0.x, m1.y - m0.y);
+    } else if (grepp && grepp.typ === "flytta"){
+      pek[e.pointerId] = p;
+      flytta(p.x - gammal.x, p.y - gammal.y);
+    } else if (grepp && grepp.typ === "xaxel"){
+      pek[e.pointerId] = p;
+      var sx = (p.x - grepp.ankarP)/grepp.data;   // bildpunkter per enhet
+      if (sx > 0){
+        var n0 = -grepp.ankarP/sx;
+        vy.x0 = n0; vy.x1 = n0 + GW/sx; begransa();
+      }
+    } else if (grepp && grepp.typ === "yaxel"){
+      pek[e.pointerId] = p;
+      var sy = (grepp.ankarP - p.y)/grepp.data;
+      if (sy > 0){
+        vy.y0 = -(GH - grepp.ankarP)/sy; vy.y1 = vy.y0 + GH/sy; begransa();
+      }
+    }
+    rita();
+  });
+  function slapp(e){
+    delete pek[e.pointerId];
+    startaGrepp();
+    if (!antal()) svg.style.cursor = "grab";
+  }
+  svg.addEventListener("pointerup", slapp);
+  svg.addEventListener("pointercancel", slapp);
+  function flytta(ddx, ddy){
+    var ex = ddx/GW*(vy.x1 - vy.x0), ey = ddy/GH*(vy.y1 - vy.y0);
+    vy.x0 -= ex; vy.x1 -= ex; vy.y0 += ey; vy.y1 += ey;
+  }
+  svg.addEventListener("wheel", function(e){
+    e.preventDefault();
+    var p = lok(e), d = e.deltaY || e.deltaX;
+    zooma(Math.exp(d*(e.ctrlKey ? 0.01 : 0.0015)), p.x, p.y);
+    rita();
+  }, {passive:false});
+
+  document.getElementById("zIn").addEventListener("click", function(){ zooma(1/1.4, GW/2, GH/2); rita(); });
+  document.getElementById("zUt").addEventListener("click", function(){ zooma(1.4, GW/2, GH/2); rita(); });
+  document.getElementById("zHem").addEventListener("click", function(){ standardVy(); rita(); });
+
+  standardVy();
+  stallFasGlidare();
+  uppdatera(true);
+  if (document.fonts) document.fonts.ready.then(function(){ rita(); });
+})();
+</script>
+</body>
+</html>
