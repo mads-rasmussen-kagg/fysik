@@ -9,38 +9,116 @@
 /* ============================================================
    REDIGERA HÄR. Detta är den enda delen du behöver röra.
 
-   Varje rad har tre delar:
+   KURSER
+   Varje kurs har ett id (används i adressen, t.ex. index.html#fysik-1),
+   ett namn och ett ämne. Kurser utan sidor visas inte på startsidan,
+   så det går bra att ha med kurser som ännu saknar material.
+
+   SIDOR
+   Varje sida har:
      titel        = det eleverna ser
      fil          = filnamnet exakt som det heter i repot
+                    (eller en hel adress som börjar med https://)
      beskrivning  = en rad text under titeln (får vara tom: "")
+     kurser       = lista med kurs-id där sidan ska synas
+     kapitel      = (valfritt) kapitelnummer per kurs, t.ex. { "fysik-1": 4 }
+                    Sidorna sorteras efter kapitel inom varje kurs.
 
-   Lägg till en ny sida genom att kopiera en rad och ändra den.
-   Ta bort en sida genom att radera dess rad.
-   Skapa ett nytt område genom att kopiera ett helt block.
+   Lägg till en ny sida genom att kopiera ett block och ändra det.
+   Ta bort en sida genom att radera dess block.
    ============================================================ */
 
-const omraden = [
+const kurser = [
+  { id: "fysik-1",          namn: "Fysik 1",                     amne: "Fysik" },
+  { id: "fysik-2",          namn: "Fysik 2",                     amne: "Fysik" },
+  { id: "matte-1c",         namn: "Matematik nivå 1c",           amne: "Matematik" },
+  { id: "matte-2c",         namn: "Matematik nivå 2c",           amne: "Matematik" },
+  { id: "matte-fort-1c",    namn: "Matematik fortsättning nivå 1c", amne: "Matematik" },
+  { id: "matte-fort-2",     namn: "Matematik fortsättning nivå 2",  amne: "Matematik" },
+];
+
+const sidor = [
+  /* ---------- Fysik ---------- */
   {
-    omrade: "Fysik",
-    sidor: [
-      { titel: "Tempograf övningar (kapitel 3)",  fil: "tempograf.html", beskrivning: "Beräkna accelerationen utifrån en given temografremsa" },
-      { titel: "Normalkraft övningar (kapitel 4)",  fil: "normalkraften.html", beskrivning: "Jobba mer med normalkraften" },
-      { titel: "Lutande plan med friktion (kapitel 4)",  fil: "lutande-plan.html", beskrivning: "Härled uttryck för krafter på ett lutande plan" },
-      { titel: "Dämpad svängningsrörelse (kapitel 5)",  fil: "dampad-svangning.html", beskrivning: "Harmonisk svängning med dämpning." },
-      { titel: "Kaströrelse med luftmotstånd (kapitel 5)",  fil: "kastrorelse-med-luftmotstand.html", beskrivning: "Kaströrelse med justerbart luftmostånd" },
-      { titel: "Kulbanor och energiprincipen (kapitel 5)",  fil: "kulbana.html", beskrivning: "Undersök energiprincipen med interaktiva kulbanor" },
-      { titel: "Kulbanor med tävling (kapitel 5)",  fil: "kultavling.html", beskrivning: "Undersök vilken kula som kommer först med interaktiva kulbanor" },
-    ]
+    titel: "Tempograf övningar",
+    fil: "tempograf.html",
+    beskrivning: "Beräkna accelerationen utifrån en given tempografremsa",
+    kurser: ["fysik-1"],
+    kapitel: { "fysik-1": 3 },
   },
-   {
-    omrade: "Matematik",
-    sidor: [
-      { titel: "Cosinus och sinus i enhetscirkeln",  fil: "enhetscirkeln.html", beskrivning: "Undersök hur vi definierar cosinus och sinus med enhetscirkeln" },
-       { titel: "Från sekant till tangent: En funktions derivata",  fil: "sekant-tangent.html", beskrivning: "Undersök hur övergången från en sekant till en tangent på en funktion motsvarar funktionens derivata" },
-       { titel: "Från sinusvärden i en cirkel till sinuskurvan",  fil: "sinuskurvan.html", beskrivning: "Undersök hur sinusvärdet i enhetscirkeln kan betraktas som en periodisk svängning i planet" },
-       { titel: "Interaktiv sinuskurva med GeoGebra",  fil: "sinusparametrar.html", beskrivning: "Undersök hur en sinusfunktions olika parametrar påverkar funktionsgrafen" },
-       { titel: "Produktregeln för derivata",  fil: "produktregeln.html", beskrivning: "Undersök produktregeln med denna grafiska motivering" },
-    ]
+  {
+    titel: "Normalkraft övningar",
+    fil: "normalkraften.html",
+    beskrivning: "Jobba mer med normalkraften",
+    kurser: ["fysik-1"],
+    kapitel: { "fysik-1": 4 },
+  },
+  {
+    titel: "Lutande plan med friktion",
+    fil: "lutande-plan.html",
+    beskrivning: "Härled uttryck för krafter på ett lutande plan",
+    kurser: ["fysik-1"],
+    kapitel: { "fysik-1": 4 },
+  },
+  {
+    titel: "Dämpad svängningsrörelse",
+    fil: "dampad-svangning.html",
+    beskrivning: "Harmonisk svängning med dämpning",
+    kurser: ["fysik-1", "fysik-2"],
+    kapitel: { "fysik-1": 5 },
+  },
+  {
+    titel: "Kaströrelse med luftmotstånd",
+    fil: "kastrorelse-med-luftmotstand.html",
+    beskrivning: "Kaströrelse med justerbart luftmotstånd",
+    kurser: ["fysik-1", "fysik-2"],
+    kapitel: { "fysik-1": 5 },
+  },
+  {
+    titel: "Kulbanor och energiprincipen",
+    fil: "kulbana.html",
+    beskrivning: "Undersök energiprincipen med interaktiva kulbanor",
+    kurser: ["fysik-1"],
+    kapitel: { "fysik-1": 5 },
+  },
+  {
+    titel: "Kulbanor med tävling",
+    fil: "kultavling.html",
+    beskrivning: "Undersök vilken kula som kommer först med interaktiva kulbanor",
+    kurser: ["fysik-1"],
+    kapitel: { "fysik-1": 5 },
+  },
+
+  /* ---------- Matematik ---------- */
+  {
+    titel: "Cosinus och sinus i enhetscirkeln",
+    fil: "enhetscirkeln.html",
+    beskrivning: "Undersök hur vi definierar cosinus och sinus med enhetscirkeln",
+    kurser: ["matte-fort-1c"],
+  },
+  {
+    titel: "Från sekant till tangent: En funktions derivata",
+    fil: "sekant-tangent.html",
+    beskrivning: "Undersök hur övergången från en sekant till en tangent på en funktion motsvarar funktionens derivata",
+    kurser: ["matte-fort-1c"],
+  },
+  {
+    titel: "Från sinusvärden i en cirkel till sinuskurvan",
+    fil: "sinuskurvan.html",
+    beskrivning: "Undersök hur sinusvärdet i enhetscirkeln kan betraktas som en periodisk svängning i planet",
+    kurser: ["matte-fort-2"],
+  },
+  {
+    titel: "Interaktiv sinuskurva med GeoGebra",
+    fil: "sinusparametrar.html",
+    beskrivning: "Undersök hur en sinusfunktions olika parametrar påverkar funktionsgrafen",
+    kurser: ["matte-fort-2"],
+  },
+  {
+    titel: "Produktregeln för derivata",
+    fil: "produktregeln.html",
+    beskrivning: "Undersök produktregeln med denna grafiska motivering",
+    kurser: ["matte-fort-2"],
   },
 ];
 
@@ -83,22 +161,23 @@ const omraden = [
     font-size: 2.1rem;
     font-weight: 650;
     letter-spacing: -0.01em;
+    line-height: 1.25;
     margin: 0 0 0.35rem;
   }
   .ingress { color: var(--muted); margin: 0 0 3rem; }
 
-  /* Områdena ligger sida vid sida på breda skärmar och staplas på smala. */
-  #innehall {
+  /* Ämnena ligger sida vid sida på breda skärmar och staplas på smala. */
+  .amnen {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0 2.5rem;
     align-items: start;
   }
   @media (max-width: 44rem) {
-    #innehall { grid-template-columns: minmax(0, 1fr); }
+    .amnen { grid-template-columns: minmax(0, 1fr); }
   }
 
-  .omrade { min-width: 0; margin-bottom: 2.5rem; }
+  .amne { min-width: 0; margin-bottom: 2.5rem; }
   h2 {
     font-size: 1.4rem;
     font-weight: 650;
@@ -127,6 +206,41 @@ const omraden = [
   .titel { font-weight: 600; font-size: 1.05rem; }
   a.kort:hover .titel { color: var(--accent); }
   .beskrivning { color: var(--muted); font-size: 0.92rem; margin-top: 0.15rem; }
+  .kapitel {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0.05rem 0.55rem;
+    margin-bottom: 0.35rem;
+  }
+
+  /* Kurssidan */
+  .tillbaka {
+    display: inline-block;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+  .tillbaka:hover { text-decoration: underline; }
+  /* Två kort bredvid varandra på kurssidan, ett per rad på smala skärmar. */
+  .kurslista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  @media (max-width: 44rem) {
+    .kurslista { grid-template-columns: minmax(0, 1fr); }
+  }
+  .kurslista li { margin: 0; display: flex; }
+  .kurslista a.kort { flex: 1; padding: 0.8rem 1rem; }
+  .kurslista .titel { font-size: 0.95rem; }
+  .kurslista .beskrivning { font-size: 0.85rem; }
+  .kurslista .kapitel { font-size: 0.7rem; margin-bottom: 0.25rem; }
+
   footer {
     margin-top: 2rem;
     padding-top: 1.25rem;
@@ -139,59 +253,110 @@ const omraden = [
 
 <body>
 <main>
-  <h1>Fysik och matematik extramaterial</h1>
-  <p class="ingress">Simuleringar och interaktivt material. Klicka på en rubrik för att öppna.</p>
-
   <div id="innehall"></div>
-
   <footer>Mads Pihl Rasmussen, Lars Kaggskolan</footer>
 </main>
 
 <script>
+  const SIDTITEL = "Fysik och matematik extramaterial";
   const ut = document.getElementById("innehall");
 
-  omraden.forEach(function (block) {
-    if (!block.sidor || block.sidor.length === 0) return;
+  function el(tagg, klass, text) {
+    const e = document.createElement(tagg);
+    if (klass) e.className = klass;
+    if (text) e.textContent = text;
+    return e;
+  }
 
-    const kolumn = document.createElement("section");
-    kolumn.className = "omrade";
+  function sidorForKurs(id) {
+    return sidor
+      .map(function (s, i) { return { s: s, i: i }; })
+      .filter(function (x) { return x.s.kurser && x.s.kurser.indexOf(id) !== -1; })
+      .sort(function (a, b) {
+        const ka = a.s.kapitel && a.s.kapitel[id] != null ? a.s.kapitel[id] : Infinity;
+        const kb = b.s.kapitel && b.s.kapitel[id] != null ? b.s.kapitel[id] : Infinity;
+        return ka !== kb ? ka - kb : a.i - b.i;
+      })
+      .map(function (x) { return x.s; });
+  }
 
-    const rubrik = document.createElement("h2");
-    rubrik.textContent = block.omrade;
-    kolumn.appendChild(rubrik);
+  function antalText(n) {
+    return n === 1 ? "1 sida" : n + " sidor";
+  }
 
-    const lista = document.createElement("ul");
+  function visaStart() {
+    document.title = SIDTITEL;
+    ut.replaceChildren();
+    ut.appendChild(el("h1", "", SIDTITEL));
+    ut.appendChild(el("p", "ingress", "Simuleringar och interaktivt material. Välj din kurs."));
 
-    block.sidor.forEach(function (sida) {
-      const rad = document.createElement("li");
-      const lank = document.createElement("a");
-      lank.className = "kort";
+    const amnen = el("div", "amnen");
+    const ordning = [];
+    kurser.forEach(function (k) { if (ordning.indexOf(k.amne) === -1) ordning.push(k.amne); });
+
+    ordning.forEach(function (amne) {
+      const synliga = kurser.filter(function (k) {
+        return k.amne === amne && sidorForKurs(k.id).length > 0;
+      });
+      if (synliga.length === 0) return;
+
+      const kolumn = el("section", "amne");
+      kolumn.appendChild(el("h2", "", amne));
+      const lista = el("ul");
+      synliga.forEach(function (k) {
+        const rad = el("li");
+        const lank = el("a", "kort");
+        lank.href = "#" + k.id;
+        lank.appendChild(el("div", "titel", k.namn));
+        lank.appendChild(el("div", "beskrivning", antalText(sidorForKurs(k.id).length)));
+        rad.appendChild(lank);
+        lista.appendChild(rad);
+      });
+      kolumn.appendChild(lista);
+      amnen.appendChild(kolumn);
+    });
+    ut.appendChild(amnen);
+  }
+
+  function visaKurs(kurs) {
+    document.title = kurs.namn + " | " + SIDTITEL;
+    ut.replaceChildren();
+
+    const tillbaka = el("a", "tillbaka", "‹ Alla kurser");
+    tillbaka.href = "#";
+    ut.appendChild(tillbaka);
+    ut.appendChild(el("h1", "", kurs.namn));
+    ut.appendChild(el("p", "ingress", "Klicka på en rubrik för att öppna."));
+
+    const lista = el("ul", "kurslista");
+    sidorForKurs(kurs.id).forEach(function (sida) {
+      const rad = el("li");
+      const lank = el("a", "kort");
       lank.href = sida.fil;
-
-       if (/^https?:\/\//i.test(sida.fil)) {
+      if (/^https?:\/\//i.test(sida.fil)) {
         lank.target = "_blank";
         lank.rel = "noopener";
-         }
-
-      const titel = document.createElement("div");
-      titel.className = "titel";
-      titel.textContent = sida.titel;
-      lank.appendChild(titel);
-
-      if (sida.beskrivning) {
-        const text = document.createElement("div");
-        text.className = "beskrivning";
-        text.textContent = sida.beskrivning;
-        lank.appendChild(text);
       }
-
+      const kap = sida.kapitel && sida.kapitel[kurs.id];
+      if (kap != null) lank.appendChild(el("div", "kapitel", "Kapitel " + kap));
+      lank.appendChild(el("div", "titel", sida.titel));
+      if (sida.beskrivning) lank.appendChild(el("div", "beskrivning", sida.beskrivning));
       rad.appendChild(lank);
       lista.appendChild(rad);
     });
+    ut.appendChild(lista);
+  }
 
-    kolumn.appendChild(lista);
-    ut.appendChild(kolumn);
-  });
+  function visa() {
+    const id = decodeURIComponent(location.hash.replace(/^#/, ""));
+    const kurs = kurser.find(function (k) { return k.id === id; });
+    if (kurs && sidorForKurs(kurs.id).length > 0) visaKurs(kurs);
+    else visaStart();
+    window.scrollTo(0, 0);
+  }
+
+  window.addEventListener("hashchange", visa);
+  visa();
 </script>
 </body>
 </html>
