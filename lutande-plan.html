@@ -154,15 +154,17 @@ th{text-align:left;font-weight:700;padding:9px 12px 9px 0;border-bottom:2px soli
 td{padding:9px 12px 9px 0;border-bottom:1px solid #ddd9cd}
 tr:last-child td{border-bottom:2px solid var(--blackish)}
 
-/* harledning */
+/* harledning: vanster- och hogerled centreras tillsammans som ett block, likhetstecknen
+   star under varandra, och kommentaren (.k) hamnar till hoger utan att paverka centreringen */
 .harled{
   font-family:Georgia,"Times New Roman",serif;font-size:31px;
-  display:grid;grid-template-columns:1fr auto 1fr;
+  display:grid;grid-template-columns:minmax(0,1fr) max-content max-content minmax(0,1fr);
   gap:16px 20px;align-items:baseline;margin:8px 0 6px;max-width:var(--matt);
 }
-.harled .v{text-align:right;font-style:italic}
-.harled .h{text-align:left;font-style:italic}
+.harled .v{grid-column:2;text-align:right;font-style:italic}
+.harled .h{grid-column:3;text-align:left;font-style:italic}
 .harled .k{
+  grid-column:4;white-space:nowrap;
   font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
   font-style:normal;font-size:19px;color:var(--gra);padding-left:26px;
 }
@@ -198,6 +200,9 @@ button:disabled{opacity:.3;cursor:default}
   position:absolute;left:212px;bottom:44px;
   font-size:18px;color:#a8a69c;letter-spacing:.05em;
 }
+
+/* sidor utan figur: kortare rader, cirka 60 tecken */
+.slide:not(.two){--matt:720px}
 
 /* tvåspaltiga sidor får något mindre brödtext så att inget spiller över */
 .slide.two p{font-size:22px}
